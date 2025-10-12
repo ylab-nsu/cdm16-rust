@@ -14,6 +14,7 @@ mod amdgpu;
 mod arm;
 mod avr;
 mod bpf;
+mod cdm;
 mod csky;
 mod hexagon;
 mod loongarch;
@@ -699,6 +700,7 @@ impl<'a, Ty> FnAbi<'a, Ty> {
             "riscv32" | "riscv64" => riscv::compute_abi_info(cx, self),
             "wasm32" | "wasm64" => wasm::compute_abi_info(cx, self),
             "bpf" => bpf::compute_abi_info(self),
+            "cdm" => cdm::compute_abi_info(self),
             arch => panic!("no lowering implemented for {arch}"),
         }
     }

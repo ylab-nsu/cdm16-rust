@@ -2013,6 +2013,7 @@ supported_targets! {
     ("x86_64-unknown-fuchsia", x86_64_unknown_fuchsia),
 
     ("avr-none", avr_none),
+    ("cdm-none", cdm_none),
 
     ("x86_64-unknown-l4re-uclibc", x86_64_unknown_l4re_uclibc),
 
