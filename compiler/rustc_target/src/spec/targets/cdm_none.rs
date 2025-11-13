@@ -1,5 +1,5 @@
 use crate::spec::{
-    PanicStrategy, RelocModel, Target, TargetMetadata, TargetOptions,
+    PanicStrategy, RelocModel, Target, TargetMetadata, TargetOptions, LinkerFlavor
 };
 
 pub(crate) fn target() -> Target {
@@ -16,12 +16,19 @@ pub(crate) fn target() -> Target {
         arch: "cdm".into(),
 
         options: TargetOptions {
-            c_int_width: 16,
             cpu: "cdm".into(),
+            c_int_width: 16,
             max_atomic_width: Some(0),
             panic_strategy: PanicStrategy::Abort,
             relocation_model: RelocModel::Static,
             eh_frame_header: false,
+            allow_asm: false,
+            obj_is_bitcode: true,
+            dynamic_linking: true,
+            only_cdylib: true,
+            linker_flavor: LinkerFlavor::Llbc,
+            linker: Some("cdm-linker".into()),
+            dll_suffix: ".o".into(),
             ..Default::default()
         },
     }
