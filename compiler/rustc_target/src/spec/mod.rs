@@ -133,6 +133,8 @@ pub enum LinkerFlavor {
     Ptx,
     /// LLVM bitcode linker that can be used as a `self-contained` linker
     Llbc,
+    /// CdM linker tool.
+    Cdm,
 }
 
 /// Linker flavors available externally through command line (`-Clinker-flavor`)
@@ -152,6 +154,7 @@ pub enum LinkerFlavorCli {
     Bpf,
     Ptx,
     Llbc,
+    Cdm,
 
     // Legacy stable values
     Gcc,
@@ -172,6 +175,7 @@ impl LinkerFlavorCli {
             | LinkerFlavorCli::EmCc
             | LinkerFlavorCli::Bpf
             | LinkerFlavorCli::Llbc
+            | LinkerFlavorCli::Cdm
             | LinkerFlavorCli::Ptx => true,
             LinkerFlavorCli::Gcc
             | LinkerFlavorCli::Ld
@@ -243,6 +247,7 @@ impl LinkerFlavor {
             LinkerFlavorCli::EmCc => LinkerFlavor::EmCc,
             LinkerFlavorCli::Bpf => LinkerFlavor::Bpf,
             LinkerFlavorCli::Llbc => LinkerFlavor::Llbc,
+            LinkerFlavorCli::Cdm => LinkerFlavor::Cdm,
             LinkerFlavorCli::Ptx => LinkerFlavor::Ptx,
 
             // Below: legacy stable values
@@ -283,6 +288,7 @@ impl LinkerFlavor {
             LinkerFlavor::EmCc => LinkerFlavorCli::Em,
             LinkerFlavor::Bpf => LinkerFlavorCli::Bpf,
             LinkerFlavor::Llbc => LinkerFlavorCli::Llbc,
+            LinkerFlavor::Cdm => LinkerFlavorCli::Cdm,
             LinkerFlavor::Ptx => LinkerFlavorCli::Ptx,
         }
     }
@@ -298,6 +304,7 @@ impl LinkerFlavor {
             LinkerFlavor::EmCc => LinkerFlavorCli::EmCc,
             LinkerFlavor::Bpf => LinkerFlavorCli::Bpf,
             LinkerFlavor::Llbc => LinkerFlavorCli::Llbc,
+            LinkerFlavor::Cdm => LinkerFlavorCli::Cdm,
             LinkerFlavor::Ptx => LinkerFlavorCli::Ptx,
         }
     }
@@ -313,6 +320,7 @@ impl LinkerFlavor {
             LinkerFlavorCli::EmCc => (Some(Cc::Yes), Some(Lld::Yes)),
             LinkerFlavorCli::Bpf | LinkerFlavorCli::Ptx => (None, None),
             LinkerFlavorCli::Llbc => (None, None),
+            LinkerFlavorCli::Cdm => (None, None),
 
             // Below: legacy stable values
             LinkerFlavorCli::Gcc => (Some(Cc::Yes), None),
@@ -331,6 +339,8 @@ impl LinkerFlavor {
 
         if stem == "llvm-bitcode-linker" {
             Ok(Self::Llbc)
+        } else if stem == "cdm-linker" {
+            Ok(Self::Cdm)
         } else if stem == "emcc" // GCC/Clang can have an optional target prefix.
             || stem == "gcc"
             || stem.ends_with("-gcc")
@@ -368,7 +378,7 @@ impl LinkerFlavor {
             LinkerFlavor::WasmLld(cc) => LinkerFlavor::WasmLld(cc_hint.unwrap_or(cc)),
             LinkerFlavor::Unix(cc) => LinkerFlavor::Unix(cc_hint.unwrap_or(cc)),
             LinkerFlavor::Msvc(lld) => LinkerFlavor::Msvc(lld_hint.unwrap_or(lld)),
-            LinkerFlavor::EmCc | LinkerFlavor::Bpf | LinkerFlavor::Llbc | LinkerFlavor::Ptx => self,
+            LinkerFlavor::EmCc | LinkerFlavor::Bpf | LinkerFlavor::Llbc | LinkerFlavor::Cdm | LinkerFlavor::Ptx => self,
         }
     }
 
@@ -396,6 +406,7 @@ impl LinkerFlavor {
                 | (LinkerFlavor::EmCc, LinkerFlavorCli::EmCc)
                 | (LinkerFlavor::Bpf, LinkerFlavorCli::Bpf)
                 | (LinkerFlavor::Llbc, LinkerFlavorCli::Llbc)
+                | (LinkerFlavor::Cdm, LinkerFlavorCli::Cdm)
                 | (LinkerFlavor::Ptx, LinkerFlavorCli::Ptx) => return true,
                 // 2. The linker flavor is independent of target and compatible
                 (LinkerFlavor::Ptx, LinkerFlavorCli::Llbc) => return true,
@@ -422,6 +433,7 @@ impl LinkerFlavor {
             | LinkerFlavor::EmCc
             | LinkerFlavor::Bpf
             | LinkerFlavor::Llbc
+            | LinkerFlavor::Cdm
             | LinkerFlavor::Ptx => LldFlavor::Ld,
             LinkerFlavor::Darwin(..) => LldFlavor::Ld64,
             LinkerFlavor::WasmLld(..) => LldFlavor::Wasm,
@@ -448,6 +460,7 @@ impl LinkerFlavor {
             | LinkerFlavor::Unix(_)
             | LinkerFlavor::Bpf
             | LinkerFlavor::Llbc
+            | LinkerFlavor::Cdm
             | LinkerFlavor::Ptx => false,
         }
     }
@@ -468,6 +481,7 @@ impl LinkerFlavor {
             | LinkerFlavor::Unix(_)
             | LinkerFlavor::Bpf
             | LinkerFlavor::Llbc
+            | LinkerFlavor::Cdm
             | LinkerFlavor::Ptx => false,
         }
     }
@@ -544,6 +558,7 @@ linker_flavor_cli_impls! {
     (LinkerFlavorCli::EmCc) "em-cc"
     (LinkerFlavorCli::Bpf) "bpf"
     (LinkerFlavorCli::Llbc) "llbc"
+    (LinkerFlavorCli::Cdm) "cdm"
     (LinkerFlavorCli::Ptx) "ptx"
 
     // Legacy stable flavors
@@ -2833,6 +2848,7 @@ fn add_link_args_iter(
         | LinkerFlavor::EmCc
         | LinkerFlavor::Bpf
         | LinkerFlavor::Llbc
+        | LinkerFlavor::Cdm
         | LinkerFlavor::Ptx => {}
     }
 }
@@ -3215,7 +3231,8 @@ impl Target {
                     LinkerFlavor::EmCc
                     | LinkerFlavor::Bpf
                     | LinkerFlavor::Ptx
-                    | LinkerFlavor::Llbc => {
+                    | LinkerFlavor::Llbc
+                    | LinkerFlavor::Cdm => {
                         check_eq!(flavor, self.linker_flavor, "mixing different linker flavors")
                     }
                 }

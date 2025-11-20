@@ -26,7 +26,7 @@ pub(crate) fn target() -> Target {
             obj_is_bitcode: true,
             dynamic_linking: true,
             only_cdylib: true,
-            linker_flavor: LinkerFlavor::Llbc,
+            linker_flavor: LinkerFlavor::Cdm,
             linker: Some("cdm-linker".into()),
             dll_suffix: ".o".into(),
             ..Default::default()

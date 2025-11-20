@@ -1345,6 +1345,7 @@ pub fn linker_and_flavor(sess: &Session) -> (PathBuf, LinkerFlavor) {
                     }
                     LinkerFlavor::Bpf => "bpf-linker",
                     LinkerFlavor::Llbc => "llvm-bitcode-linker",
+                    LinkerFlavor::Cdm => "cdm-linker",
                     LinkerFlavor::Ptx => "rust-ptx-linker",
                 }),
                 flavor,
@@ -1386,6 +1387,7 @@ pub fn linker_and_flavor(sess: &Session) -> (PathBuf, LinkerFlavor) {
     let linker_flavor = match sess.opts.cg.linker_flavor {
         // The linker flavors that are non-target specific can be directly translated to LinkerFlavor
         Some(LinkerFlavorCli::Llbc) => Some(LinkerFlavor::Llbc),
+        Some(LinkerFlavorCli::Cdm) => Some(LinkerFlavor::Cdm),
         Some(LinkerFlavorCli::Ptx) => Some(LinkerFlavor::Ptx),
         // The linker flavors that corresponds to targets needs logic that keeps the base LinkerFlavor
         _ => sess

@@ -26,6 +26,7 @@ members = [
   "src/tools/lint-docs",
   "src/tools/lld-wrapper",
   "src/tools/llvm-bitcode-linker",
+  "src/tools/cdm-linker",
   "src/tools/miri",
   "src/tools/miri/cargo-miri",
   "src/tools/miropt-test-tools",
