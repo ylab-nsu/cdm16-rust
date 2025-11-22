@@ -5,16 +5,14 @@ use cdm_linker::{Optimization, OutputType, Session};
 use clap::Parser;
 
 #[derive(Debug, Parser)]
-/// Linker for embedded code without any system dependencies
+/// Link LLVM bitcode files and compile them into a CdM-16 object file or Logisim image using llvm-link, opt and cocas.
 pub struct Args {
-    /// Input files - objects, archives and static libraries.
-    ///
-    /// An archive can be, but not required to be, a Rust rlib.
+    /// Input files:
+    /// - Rust rlibs
+    /// - LLVM bitcode files
+    /// - CdM-16 assembly files (*.s, *.asm)
+    /// - CdM-16 object files (*.obj)
     files: Vec<PathBuf>,
-
-    /// A symbol that should be exported
-    #[arg(long)]
-    export_symbol: Vec<String>,
 
     /// Input file directory
     #[arg(short = 'L')]
@@ -25,11 +23,16 @@ pub struct Args {
     output: PathBuf,
 
     /// The type of the output file
-    #[arg(long, value_enum, default_value = "object")]
+    #[arg(short = 't', long, value_enum, default_value = "object")]
     output_type: OutputType,
 
+    /// A symbol defined in a Rust rlib or LLVM BC file
+    /// that should be exported
+    #[arg(short = 's', long)]
+    export_symbol: Vec<String>,
+
     /// Emit debug information
-    #[arg(long)]
+    #[arg(short = 'g', long)]
     debug: bool,
 
     /// The optimization level
