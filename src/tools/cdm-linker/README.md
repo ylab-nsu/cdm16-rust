@@ -1,4 +1,4 @@
-# CDM Linker
+# CdM-16 Rust Linker
 Link LLVM bitcode files and compile them into a CdM-16 object file or Logisim image using `llvm-link`, `opt` and `cocas`.
 
 ## Usage
@@ -25,8 +25,10 @@ cdm-linker [OPTIONS] -o <OUTPUT> [FILES]
 
 ## Notes
 
-All symbols not passed with `--export-symbol` are internalized (and trimmed if possible) with `opt` before `cocas` invocation.
+Path to `cocas` may be explicitly specified with the `COCAS` environment variable.
 
+All symbols not passed with `--export-symbol` are internalized (and trimmed if possible) with `opt` before `cocas` invocation.  
 Therefore you need to pass the following with `--export-symbol`:
 - your entry point functions (main, interrupt handlers), if you're making an executable (Logisim image);
 - your public functions and global variables, if you're making a library (CdM-16 object).
+
