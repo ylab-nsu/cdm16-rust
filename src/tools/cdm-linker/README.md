@@ -1,5 +1,32 @@
-# LLVM Bitcode Linker
-The LLVM bitcode linker can be used to link targets without any dependency on system libraries.
-The code will be linked in llvm-bc before compiling to native code. For some of these targets
-(e.g. ptx) there does not exist a sensible way to link the native format at all. A bitcode linker
-is required to link code compiled for such targets.
+# CDM Linker
+Link LLVM bitcode files and compile them into a CdM-16 object file or Logisim image using `llvm-link`, `opt` and `cocas`.
+
+## Usage
+
+```txt
+cdm-linker [OPTIONS] -o <OUTPUT> [FILES]
+```
+
+### Arguments
+
+`[FILES]` - Input files: rust rlibs, llvm bitcode files, CdM-16 assembly files (*\*.s*, *\*.asm*), CdM-16 object files (*\*.obj*)
+
+### Options
+
+`-o, --output <OUTPUT>` - Write output to the filename
+
+`-t, --output-type <TYPE>` - The type of the output file (`object` or `image`)
+
+`-s, --export-symbol <SYMBOL>` - Export symbol defined in LLVM bitcode files
+
+`-g, --debug` - Emit debug information
+
+`-O <OPT>` - Optimization level (same as in `clang`)
+
+## Notes
+
+All symbols not passed with `--export-symbol` are internalized (and trimmed if possible) with `opt` before `cocas` invocation.
+
+Therefore you need to pass the following with `--export-symbol`:
+- your entry point functions (main, interrupt handlers), if you're making an executable (Logisim image);
+- your public functions and global variables, if you're making a library (CdM-16 object).
