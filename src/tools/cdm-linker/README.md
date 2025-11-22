@@ -23,11 +23,14 @@ cdm-linker [OPTIONS] -o <OUTPUT> [FILES]
 
 `-O <OPT>` - Optimization level (same as in `clang`)
 
+## Environment
+
+`COCAS` - Path to the `cocas` executable
+
 ## Notes
 
-Path to `cocas` may be explicitly specified with the `COCAS` environment variable.
+All symbols not passed with `--export-symbol` are internalized (and trimmed if possible) with `opt` before `cocas` invocation.
 
-All symbols not passed with `--export-symbol` are internalized (and trimmed if possible) with `opt` before `cocas` invocation.  
 Therefore you need to pass the following with `--export-symbol`:
 - your entry point functions (main, interrupt handlers), if you're making an executable (Logisim image);
 - your public functions and global variables, if you're making a library (CdM-16 object).
