@@ -2083,9 +2083,11 @@ impl<'a> Linker for CdmLinker<'a> {
             | LinkOutputKind::DynamicPicExe
             | LinkOutputKind::StaticNoPicExe
             | LinkOutputKind::StaticPicExe => {
-                self.link_arg("--emit-image");
+                self.link_arg("--output-type=image");
             }
-            LinkOutputKind::DynamicDylib | LinkOutputKind::StaticDylib => {}
+            LinkOutputKind::DynamicDylib | LinkOutputKind::StaticDylib => {
+                self.link_arg("--output-type=object");
+            }
             LinkOutputKind::WasiReactorExe => {
                 panic!("can't link as reactor on non-wasi target");
             }

@@ -1,21 +1,15 @@
 use crate::Optimization;
+use crate::OutputType;
 use crate::string_utils::Indent;
 use anyhow::Context;
+use std::ffi::OsStr;
 use std::path::PathBuf;
 use strip_ansi_escapes as strip_ansi;
-
-#[derive(Debug, PartialEq)]
-pub enum OutType {
-    // Cocas-compatible object file
-    Object,
-    // Logisim image file
-    Image,
-}
 
 #[derive(Debug)]
 pub struct Session {
     // Output file type
-    out_type: OutType,
+    out_type: OutputType,
     // Symbols to pass to `llvm-link` with `--internalize-public-api-file`.
     exported_symbols: Vec<String>,
     // Files to pass to `llvm-link`
@@ -27,13 +21,10 @@ pub struct Session {
     sym_path: PathBuf,
     asm_path: PathBuf,
     out_path: PathBuf,
-
-    // Path to cocas executable
-    cocas_path: PathBuf,
 }
 
 impl Session {
-    pub fn new(cocas_path: PathBuf, out_path: PathBuf, out_type: OutType) -> Self {
+    pub fn new(out_path: PathBuf, out_type: OutputType) -> Self {
         let link_path = out_path.with_extension("bc");
         let opt_path = out_path.with_extension("optimized.bc");
         let sym_path = out_path.with_extension("symbols.txt");
@@ -48,7 +39,6 @@ impl Session {
             sym_path,
             asm_path,
             out_path,
-            cocas_path,
         }
     }
 
@@ -81,7 +71,9 @@ impl Session {
             tracing::error!(
                 "llvm-link returned with {}\n    stderr:\n{}",
                 llvm_link_output.status,
-                String::from_utf8(strip_ansi::strip(llvm_link_output.stderr)).unwrap().indent_lines(4),
+                String::from_utf8(strip_ansi::strip(llvm_link_output.stderr))
+                    .unwrap()
+                    .indent_lines(4),
             );
             anyhow::bail!("llvm-link failed to link files {:?}", self.files);
         }
@@ -161,20 +153,20 @@ impl Session {
     /// Assemble the generated code into an image or and object file usin `cocas`
     ///
     /// Before this can be called `compile` needs to be called
-    fn assemble(&mut self) -> anyhow::Result<()> {
+    fn assemble(&mut self, cocas_path: &OsStr) -> anyhow::Result<()> {
         tracing::info!("Assembling with cocas");
 
-        let mut cocas_command = std::process::Command::new(&self.cocas_path);
+        let mut cocas_command = std::process::Command::new(cocas_path);
 
         cocas_command.arg(&self.asm_path).arg("-o").arg(&self.out_path);
-        if self.out_type == OutType::Object {
+        if self.out_type == OutputType::Object {
             cocas_command.arg("-c");
         }
 
         let cocas_output = cocas_command.output().context(
             "An error occured when calling cocas. \
             Make sure it is available in $PATH or \
-            use --cocas-path=<path-to-cocas> to specify the executable explicitly.",
+            specify the executable explicitly with $COCAS.",
         )?;
 
         if !cocas_output.status.success() {
@@ -191,10 +183,15 @@ impl Session {
     }
 
     /// Run the linker steps with the specified options.
-    pub fn run(&mut self, optimization: Optimization, debug: bool) -> anyhow::Result<()> {
+    pub fn run(
+        &mut self,
+        optimization: Optimization,
+        debug: bool,
+        cocas_path: &OsStr,
+    ) -> anyhow::Result<()> {
         self.link()?;
         self.optimize(optimization, debug)?;
         self.compile()?;
-        self.assemble()
+        self.assemble(cocas_path)
     }
 }
