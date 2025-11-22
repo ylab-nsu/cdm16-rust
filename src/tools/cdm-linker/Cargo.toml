@@ -12,3 +12,4 @@ tracing = "0.1"
 tracing-subscriber = {version = "0.3.0", features = ["std"] }
 clap = { version = "4.3", features = ["derive"] }
 thiserror = "1.0.24"
+strip-ansi-escapes = "0.2.1"

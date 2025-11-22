@@ -41,18 +41,23 @@ pub struct Args {
 }
 
 fn main() -> anyhow::Result<()> {
-    tracing_subscriber::FmtSubscriber::builder().with_max_level(tracing::Level::DEBUG).init();
+    tracing_subscriber::FmtSubscriber::builder()
+        .with_max_level(tracing::Level::INFO)
+        .with_ansi(false) // rustc escapes ansi sequences when printing error logs
+        .without_time()
+        .init();
 
     let args = Args::parse();
 
-    let out_type = if args.emit_image { OutType::Image } else { OutType::Object };
-    let mut linker = Session::new(args.cocas_path, args.output, out_type);
-
+    let mut linker = Session::new(
+        args.cocas_path,
+        args.output,
+        if args.emit_image { OutType::Image } else { OutType::Object },
+    );
     linker.add_exported_symbols(args.export_symbol);
-
     for rlib in args.files {
         linker.add_file(rlib);
     }
 
-    linker.lto(args.optimization, args.debug)
+    linker.run(args.optimization, args.debug)
 }
