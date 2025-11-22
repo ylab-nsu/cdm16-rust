@@ -13,13 +13,18 @@ pub struct Session {
     // Symbols to pass to `llvm-link` with `--internalize-public-api-file`.
     exported_symbols: Vec<String>,
     // Files to pass to `llvm-link`
-    files: Vec<PathBuf>,
+    bitcode_files: Vec<PathBuf>,
+    // Assembly files to pass to `cocas`
+    assembly_files: Vec<PathBuf>,
+    // Object files to pass to `cocas`
+    object_files: Vec<PathBuf>,
 
     // Output files
     link_path: PathBuf,
     opt_path: PathBuf,
     sym_path: PathBuf,
     asm_path: PathBuf,
+    merge_path: PathBuf,
     out_path: PathBuf,
 }
 
@@ -29,22 +34,36 @@ impl Session {
         let opt_path = out_path.with_extension("optimized.bc");
         let sym_path = out_path.with_extension("symbols.txt");
         let asm_path = out_path.with_extension("asm");
+        let merge_path = out_path.with_extension("merge.obj");
 
         Session {
             out_type,
             exported_symbols: Vec::new(),
-            files: Vec::new(),
+            bitcode_files: Vec::new(),
+            assembly_files: Vec::new(),
+            object_files: Vec::new(),
             link_path,
             opt_path,
             sym_path,
             asm_path,
+            merge_path,
             out_path,
         }
     }
 
     /// Add a file, like an rlib or bitcode file that should be linked
-    pub fn add_file(&mut self, path: PathBuf) {
-        self.files.push(path);
+    pub fn add_bitcode(&mut self, path: PathBuf) {
+        self.bitcode_files.push(path);
+    }
+
+    /// Add an additional assembly file pass to `cocas`
+    pub fn add_assembly(&mut self, path: PathBuf) {
+        self.assembly_files.push(path);
+    }
+
+    /// Add an additional object file pass to `cocas`
+    pub fn add_object(&mut self, path: PathBuf) {
+        self.object_files.push(path);
     }
 
     /// Add a Vec of symbols to the list of exported symbols
@@ -57,11 +76,11 @@ impl Session {
     /// The resulting artifact will be written to a file that can later be read to perform
     /// optimizations and/or compilation from bitcode to the final artifact.
     fn link(&mut self) -> anyhow::Result<()> {
-        tracing::info!("Linking {} files using llvm-link", self.files.len());
+        tracing::info!("Linking {} files using llvm-link", self.bitcode_files.len());
 
         let llvm_link_output = std::process::Command::new("llvm-link")
             .arg("--ignore-non-bitcode")
-            .args(&self.files)
+            .args(&self.bitcode_files)
             .arg("-o")
             .arg(&self.link_path)
             .output()
@@ -75,7 +94,7 @@ impl Session {
                     .unwrap()
                     .indent_lines(4),
             );
-            anyhow::bail!("llvm-link failed to link files {:?}", self.files);
+            anyhow::bail!("llvm-link failed to link files {:?}", self.bitcode_files);
         }
 
         Ok(())
@@ -150,18 +169,36 @@ impl Session {
         Ok(())
     }
 
+    /// Checks if a second call to `cocas` is needed to merge the generated object with
+    /// additional objects passed via command line arguments.
+    fn needs_merge(&self) -> bool {
+        self.out_type == OutputType::Object && !self.object_files.is_empty()
+    }
+
     /// Assemble the generated code into an image or and object file usin `cocas`
     ///
     /// Before this can be called `compile` needs to be called
     fn assemble(&mut self, cocas_path: &OsStr) -> anyhow::Result<()> {
         tracing::info!("Assembling with cocas");
+        if self.needs_merge() {
+            tracing::info!("Got additional objects, and output-type is object, going to merge");
+        }
 
         let mut cocas_command = std::process::Command::new(cocas_path);
 
-        cocas_command.arg(&self.asm_path).arg("-o").arg(&self.out_path);
+        cocas_command.arg(&self.asm_path).args(&self.assembly_files);
+        if !self.needs_merge() {
+            cocas_command.args(&self.object_files);
+        }
+
         if self.out_type == OutputType::Object {
             cocas_command.arg("-c");
         }
+        cocas_command.arg("-o").arg(if self.needs_merge() {
+            &self.merge_path
+        } else {
+            &self.out_path
+        });
 
         let cocas_output = cocas_command.output().context(
             "An error occured when calling cocas. \
@@ -182,6 +219,44 @@ impl Session {
         Ok(())
     }
 
+    /// Merge the object with additional cocas objects passed as inputs.
+    ///
+    /// Optional. Before this can be called `assemble` needs to be called
+    fn merge(&mut self, cocas_path: &OsStr) -> anyhow::Result<()> {
+        tracing::info!("Merging {} files with cocas", self.object_files.len() + 1);
+
+        let mut cocas_command = std::process::Command::new(cocas_path);
+
+        cocas_command
+            .arg(&self.merge_path)
+            .args(&self.object_files)
+            .arg("-m")
+            .arg("-o")
+            .arg(&self.out_path);
+
+        let cocas_output = cocas_command.output().context(
+            "An error occured when calling cocas. \
+            Make sure it is available in $PATH or \
+            specify the executable explicitly with $COCAS.",
+        )?;
+
+        if !cocas_output.status.success() {
+            tracing::error!(
+                "cocas returned with {}\n    stderr:\n{}",
+                cocas_output.status,
+                String::from_utf8(strip_ansi::strip(cocas_output.stderr)).unwrap().indent_lines(4)
+            );
+
+            anyhow::bail!("cocas failed to merge {:?}", {
+                let mut objs = self.object_files.clone();
+                objs.insert(0, self.merge_path.clone());
+                objs
+            });
+        }
+
+        Ok(())
+    }
+
     /// Run the linker steps with the specified options.
     pub fn run(
         &mut self,
@@ -192,6 +267,10 @@ impl Session {
         self.link()?;
         self.optimize(optimization, debug)?;
         self.compile()?;
-        self.assemble(cocas_path)
+        self.assemble(cocas_path)?;
+        if self.needs_merge() {
+            self.merge(cocas_path)?;
+        }
+        Ok(())
     }
 }

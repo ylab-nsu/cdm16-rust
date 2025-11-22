@@ -48,8 +48,14 @@ fn main() -> anyhow::Result<()> {
 
     let mut linker = Session::new(args.output, args.output_type);
     linker.add_exported_symbols(args.export_symbol);
-    for rlib in args.files {
-        linker.add_file(rlib);
+    for file in args.files {
+        match file.extension() {
+            Some(ext) if ext.eq_ignore_ascii_case("s") || ext.eq_ignore_ascii_case("asm") => {
+                linker.add_assembly(file)
+            }
+            Some(ext) if ext.eq_ignore_ascii_case("obj") => linker.add_object(file),
+            _ => linker.add_bitcode(file),
+        };
     }
 
     let cocas_path = env::var("COCAS").unwrap_or(String::from("cocas"));
