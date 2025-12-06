@@ -455,6 +455,8 @@ pub enum CallConvention {
     AvrNonBlockingInterrupt,
 
     RiscvInterrupt,
+
+    CDMInterrupt,
 }
 
 #[non_exhaustive]

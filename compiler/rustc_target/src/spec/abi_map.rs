@@ -58,6 +58,7 @@ impl AbiMap {
             "riscv32" | "riscv64" => Arch::Riscv,
             "x86" => Arch::X86,
             "x86_64" => Arch::X86_64,
+            "cdm" => Arch::CDM,
             _ => Arch::Other,
         };
         let os = if target.is_like_windows { OsKind::Windows } else { OsKind::Other };
@@ -158,13 +159,17 @@ impl AbiMap {
             (ExternAbi::X86Interrupt, Arch::X86 | Arch::X86_64) => {
                 CanonAbi::Interrupt(InterruptKind::X86)
             }
+            (ExternAbi::CDMInterrupt, Arch::CDM) => {
+                CanonAbi::Interrupt(InterruptKind::CDM)
+            }
             (
                 ExternAbi::AvrInterrupt
                 | ExternAbi::AvrNonBlockingInterrupt
                 | ExternAbi::Msp430Interrupt
                 | ExternAbi::RiscvInterruptM
                 | ExternAbi::RiscvInterruptS
-                | ExternAbi::X86Interrupt,
+                | ExternAbi::X86Interrupt
+                | ExternAbi::CDMInterrupt,
                 _,
             ) => return AbiMapping::Invalid,
         };
@@ -184,6 +189,7 @@ enum Arch {
     Riscv,
     X86,
     X86_64,
+    CDM,
     /// Architectures which don't need other considerations for ABI lowering
     Other,
 }

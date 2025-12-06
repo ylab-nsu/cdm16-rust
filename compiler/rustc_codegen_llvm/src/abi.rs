@@ -668,6 +668,7 @@ impl llvm::CallConv {
                 InterruptKind::Msp430 => llvm::Msp430Intr,
                 InterruptKind::RiscvMachine | InterruptKind::RiscvSupervisor => llvm::CCallConv,
                 InterruptKind::X86 => llvm::X86_Intr,
+                InterruptKind::CDM => llvm::CDMInterrupt,
             },
             CanonAbi::Arm(arm_call) => match arm_call {
                 ArmCall::Aapcs => llvm::ArmAapcsCallConv,
