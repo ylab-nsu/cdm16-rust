@@ -65,6 +65,14 @@ impl Session {
         vec.push(path.into());
     }
 
+    fn up_to_date(in_file: &Path, out_file: &Path) -> bool {
+        let Ok(in_meta) = std::fs::metadata(in_file) else { return false };
+        let Ok(out_meta) = std::fs::metadata(out_file) else { return false };
+        let Ok(in_modified) = in_meta.modified() else { return false };
+        let Ok(out_modified) = out_meta.modified() else { return false };
+        out_modified >= in_modified
+    }
+
     fn extract_archive(name: &Path, bc_names: &mut Vec<Rc<Path>>) -> anyhow::Result<()> {
         let file =
             File::open(name).context(format!("Could not open archive {}", name.display()))?;
@@ -80,16 +88,25 @@ impl Session {
                     continue;
                 }
             }
-            let name = content_dir.join(inner_name);
-            let mut file = File::create(&name).context(format!("Could not create file {}", name.display()))?;
-            std::io::copy(&mut entry, &mut file).context(format!("Error while extracting file {}", name.display()))?;
-            bc_names.push(name.into());
+            let ex_name = content_dir.join(inner_name);
+
+            if !Self::up_to_date(&name, &ex_name) {
+                let mut file = File::create(&ex_name)
+                    .context(format!("Could not create file {}", ex_name.display()))?;
+                std::io::copy(&mut entry, &mut file)
+                    .context(format!("Error while extracting file {}", ex_name.display()))?;
+            }
+            bc_names.push(ex_name.into());
         }
         Ok(())
     }
 
     fn compile_bitcode(name: &Path, opt_level: Optimization) -> anyhow::Result<Rc<Path>> {
         let out_name = name.with_extension("asm");
+
+        if Self::up_to_date(&name, &out_name) {
+            return Ok(out_name.into());
+        }
 
         let mut llc_command = std::process::Command::new("llc");
         let llc_output = llc_command
@@ -113,6 +130,10 @@ impl Session {
 
     fn assemble_source(name: &Path, cocas_name: &OsStr) -> anyhow::Result<Rc<Path>> {
         let out_name = name.with_extension("obj");
+
+        if Self::up_to_date(&name, &out_name) {
+            return Ok(out_name.into());
+        }
 
         let mut cocas_command = std::process::Command::new(cocas_name);
         cocas_command.arg("-o").arg(&out_name).arg("-c").arg(name);
