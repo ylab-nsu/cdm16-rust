@@ -74,6 +74,7 @@ impl fmt::Display for CanonAbi {
                 InterruptKind::RiscvMachine => ExternAbi::RiscvInterruptM,
                 InterruptKind::RiscvSupervisor => ExternAbi::RiscvInterruptS,
                 InterruptKind::X86 => ExternAbi::X86Interrupt,
+                InterruptKind::CDM => ExternAbi::CDMInterrupt,
             },
             CanonAbi::X86(x86_call) => match x86_call {
                 X86Call::Fastcall => ExternAbi::Fastcall { unwind: false },
@@ -103,6 +104,7 @@ pub enum InterruptKind {
     RiscvMachine,
     RiscvSupervisor,
     X86,
+    CDM
 }
 
 /// ABIs defined for x86-{32,64}

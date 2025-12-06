@@ -138,6 +138,7 @@ impl<'tcx> Stable<'tcx> for CanonAbi {
                     CallConvention::RiscvInterrupt
                 }
                 InterruptKind::X86 => CallConvention::X86Intr,
+                InterruptKind::CDM => CallConvention::CDMInterrupt,
             },
             CanonAbi::X86(x86_call) => match x86_call {
                 X86Call::Fastcall => CallConvention::X86Fastcall,

@@ -78,6 +78,7 @@ pub enum ExternAbi {
     RiscvInterruptM,
     RiscvInterruptS,
     X86Interrupt,
+    CDMInterrupt,
 
     /* x86 */
     /// `ExternAbi::C` but spelled funny because x86
@@ -176,6 +177,7 @@ abi_impls! {
             Win64 { unwind: false } =><= "win64",
             Win64 { unwind: true } =><= "win64-unwind",
             X86Interrupt =><= "x86-interrupt",
+            CDMInterrupt =><= "cdm-isr",
     }
 }
 
