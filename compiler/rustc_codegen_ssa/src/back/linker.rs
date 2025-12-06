@@ -2102,9 +2102,7 @@ impl<'a> Linker for CdmLinker<'a> {
         self.link_or_cc_arg(path);
     }
 
-    fn debuginfo(&mut self, _strip: Strip, _: &[PathBuf]) {
-        self.link_arg("--debug");
-    }
+    fn debuginfo(&mut self, _strip: Strip, _: &[PathBuf]) {}
 
     fn optimize(&mut self) {
         self.link_arg(match self.sess.opts.optimize {
@@ -2139,12 +2137,8 @@ impl<'a> Linker for CdmLinker<'a> {
         &mut self,
         _tmpdir: &Path,
         _crate_type: CrateType,
-        symbols: &[(String, SymbolExportKind)],
-    ) {
-        for (sym, _) in symbols {
-            self.link_args(&["--export-symbol", sym]);
-        }
-    }
+        _symbols: &[(String, SymbolExportKind)],
+    ) {}
 
     fn subsystem(&mut self, _subsystem: &str) {}
 

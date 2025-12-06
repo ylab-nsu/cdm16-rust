@@ -1,7 +1,7 @@
 use std::env;
 use std::path::PathBuf;
 
-use cdm_linker::{Optimization, OutputType, Session};
+use cdm_linker::{CompilationOptions, Optimization, OutputType, Session};
 use clap::Parser;
 
 #[derive(Debug, Parser)]
@@ -26,15 +26,6 @@ pub struct Args {
     #[arg(short = 't', long, value_enum, default_value = "object")]
     output_type: OutputType,
 
-    /// A symbol defined in a Rust rlib or LLVM BC file
-    /// that should be exported
-    #[arg(short = 's', long)]
-    export_symbol: Vec<String>,
-
-    /// Emit debug information
-    #[arg(short = 'g', long)]
-    debug: bool,
-
     /// The optimization level
     #[arg(short = 'O', value_enum, default_value = "0")]
     optimization: Optimization,
@@ -50,18 +41,12 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     let mut linker = Session::new(args.output, args.output_type);
-    linker.add_exported_symbols(args.export_symbol);
     for file in args.files {
-        match file.extension() {
-            Some(ext) if ext.eq_ignore_ascii_case("s") || ext.eq_ignore_ascii_case("asm") => {
-                linker.add_assembly(file)
-            }
-            Some(ext) if ext.eq_ignore_ascii_case("obj") => linker.add_object(file),
-            _ => linker.add_bitcode(file),
-        };
+        linker.add_file(file);
     }
 
-    let cocas_path = env::var("COCAS").unwrap_or(String::from("cocas"));
+    let cocas_name = env::var("COCAS").unwrap_or(String::from("cocas"));
+    let comp_opt = CompilationOptions::new(args.optimization);
 
-    linker.run(args.optimization, args.debug, cocas_path.as_ref())
+    linker.run(&comp_opt, cocas_name.as_ref())
 }
