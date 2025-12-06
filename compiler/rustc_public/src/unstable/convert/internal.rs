@@ -630,6 +630,7 @@ impl RustcInternal for Abi {
             Abi::RustInvalid => rustc_abi::ExternAbi::RustInvalid,
             Abi::RiscvInterruptM => rustc_abi::ExternAbi::RiscvInterruptM,
             Abi::RiscvInterruptS => rustc_abi::ExternAbi::RiscvInterruptS,
+            Abi::CDMInterrupt => rustc_abi::ExternAbi::CDMInterrupt,
             Abi::Custom => rustc_abi::ExternAbi::Custom,
         }
     }
