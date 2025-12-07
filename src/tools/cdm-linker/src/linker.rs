@@ -2,8 +2,14 @@ use crate::Optimization;
 use crate::OutputType;
 use crate::string_utils::Indent;
 use anyhow::Context;
+use base64::prelude::{BASE64_URL_SAFE_NO_PAD, Engine as _};
+use rustc_stable_hash::FromStableHash;
+use rustc_stable_hash::SipHasher128Hash;
+use rustc_stable_hash::StableSipHasher128;
 use std::ffi::OsStr;
+use std::ffi::OsString;
 use std::fs::File;
+use std::hash::Hasher;
 use std::path::Path;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -23,6 +29,8 @@ pub struct Session {
     object_files: Vec<Rc<Path>>,
     /// Output file path
     out_file: PathBuf,
+    /// Directory for intermediate build files
+    build_dir: PathBuf,
 }
 
 // TODO: Add debug info support when cocas is fixed
@@ -36,16 +44,35 @@ impl CompilationOptions {
     }
 }
 
+struct Hash128([u8; 16]);
+impl FromStableHash for Hash128 {
+    type Hash = SipHasher128Hash;
+
+    fn from(SipHasher128Hash(hash): SipHasher128Hash) -> Hash128 {
+        let left = hash[0].to_le_bytes();
+        let right = hash[0].to_le_bytes();
+        Hash128({
+            let mut res: [u8; 16] = [0; 16];
+            res[..8].copy_from_slice(&left);
+            res[8..].copy_from_slice(&right);
+            res
+        })
+    }
+}
+
 impl Session {
-    pub fn new(out_file: PathBuf, out_type: OutputType) -> Self {
-        Session {
+    pub fn new(out_file: PathBuf, out_type: OutputType) -> anyhow::Result<Self> {
+        let build_dir = out_file.with_extension("cdm.build");
+        std::fs::create_dir_all(&build_dir).context("Could not create build directory")?;
+        Ok(Session {
             out_type,
             archive_files: Vec::new(),
             bitcode_files: Vec::new(),
             assembly_files: Vec::new(),
             object_files: Vec::new(),
             out_file,
-        }
+            build_dir,
+        })
     }
 
     /// Add a file to link
@@ -65,6 +92,22 @@ impl Session {
         vec.push(path.into());
     }
 
+    fn out_file_name(&self, in_file: &Path, ext: impl AsRef<OsStr>) -> PathBuf {
+        let mut hasher = StableSipHasher128::new();
+        hasher.write(in_file.as_os_str().as_encoded_bytes());
+        let hash: Hash128 = hasher.finish();
+        let string_hash = BASE64_URL_SAFE_NO_PAD.encode(&hash.0);
+        let mut out_string = OsString::new();
+        if let Some(name) = in_file.file_name() {
+            out_string.push(name);
+        }
+        out_string.push(".");
+        out_string.push(&string_hash);
+        out_string.push(".");
+        out_string.push(ext.as_ref());
+        self.build_dir.join(out_string)
+    }
+
     fn up_to_date(in_file: &Path, out_file: &Path) -> bool {
         let Ok(in_meta) = std::fs::metadata(in_file) else { return false };
         let Ok(out_meta) = std::fs::metadata(out_file) else { return false };
@@ -73,11 +116,11 @@ impl Session {
         out_modified >= in_modified
     }
 
-    fn extract_archive(name: &Path, bc_names: &mut Vec<Rc<Path>>) -> anyhow::Result<()> {
+    fn extract_archive(&self, name: &Path, bc_names: &mut Vec<Rc<Path>>) -> anyhow::Result<()> {
         let file =
             File::open(name).context(format!("Could not open archive {}", name.display()))?;
         let mut archive = ar::Archive::new(file);
-        let content_dir = name.with_extension("x");
+        let content_dir = self.out_file_name(name, "x");
         std::fs::create_dir_all(&content_dir)?;
 
         while let Some(entry_result) = archive.next_entry() {
@@ -101,8 +144,8 @@ impl Session {
         Ok(())
     }
 
-    fn compile_bitcode(name: &Path, opt_level: Optimization) -> anyhow::Result<Rc<Path>> {
-        let out_name = name.with_extension("asm");
+    fn compile_bitcode(&self, name: &Path, opt_level: Optimization) -> anyhow::Result<Rc<Path>> {
+        let out_name = self.out_file_name(name, "asm");
 
         if Self::up_to_date(&name, &out_name) {
             return Ok(out_name.into());
@@ -122,14 +165,14 @@ impl Session {
                 llc_output.status,
                 String::from_utf8(strip_ansi::strip(llc_output.stderr)).unwrap().indent_lines(4),
             );
-            anyhow::bail!("llc failed to compile {}", name.display());
+            anyhow::bail!("llc failed to compile {} {}", name.display(), out_name.display());
         }
 
         Ok(out_name.into())
     }
 
-    fn assemble_source(name: &Path, cocas_name: &OsStr) -> anyhow::Result<Rc<Path>> {
-        let out_name = name.with_extension("obj");
+    fn assemble_source(&self, name: &Path, cocas_name: &OsStr) -> anyhow::Result<Rc<Path>> {
+        let out_name = self.out_file_name(name, "obj");
 
         if Self::up_to_date(&name, &out_name) {
             return Ok(out_name.into());
@@ -155,15 +198,10 @@ impl Session {
         Ok(out_name.into())
     }
 
-    fn link_objects(
-        objects: &Vec<Rc<Path>>,
-        out_name: &Path,
-        out_type: OutputType,
-        cocas_name: &OsStr,
-    ) -> anyhow::Result<()> {
+    fn link_objects(&self, objects: &Vec<Rc<Path>>, cocas_name: &OsStr) -> anyhow::Result<()> {
         let mut cocas_command = std::process::Command::new(cocas_name);
-        cocas_command.arg("-o").arg(out_name);
-        if out_type == OutputType::Object {
+        cocas_command.arg("-o").arg(&self.out_file);
+        if self.out_type == OutputType::Object {
             cocas_command.arg("-m");
         }
         for object in objects {
@@ -193,17 +231,17 @@ impl Session {
         let mut object_files = self.object_files.clone();
 
         for archive in &self.archive_files {
-            Self::extract_archive(&archive, &mut bitcode_files)?;
+            self.extract_archive(&archive, &mut bitcode_files)?;
         }
         for bitcode in &bitcode_files {
-            let name = Self::compile_bitcode(&bitcode, comp_opts.opt_level)?;
+            let name = self.compile_bitcode(&bitcode, comp_opts.opt_level)?;
             assembly_files.push(name);
         }
         for assembly in &assembly_files {
-            let name = Self::assemble_source(&assembly, cocas_name)?;
+            let name = self.assemble_source(&assembly, cocas_name)?;
             object_files.push(name);
         }
-        Self::link_objects(&object_files, &self.out_file, self.out_type, cocas_name)?;
+        self.link_objects(&object_files, cocas_name)?;
 
         Ok(())
     }

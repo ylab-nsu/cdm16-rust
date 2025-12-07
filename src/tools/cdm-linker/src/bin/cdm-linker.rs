@@ -40,7 +40,7 @@ fn main() -> anyhow::Result<()> {
 
     let args = Args::parse();
 
-    let mut linker = Session::new(args.output, args.output_type);
+    let mut linker = Session::new(args.output, args.output_type)?;
     for file in args.files {
         linker.add_file(file);
     }
