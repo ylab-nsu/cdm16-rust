@@ -1,5 +1,5 @@
 use std::env;
-use std::path::PathBuf;
+use std::path::Path;
 
 use cdm_linker::{CompilationOptions, Optimization, OutputType, Session};
 use clap::Parser;
@@ -12,15 +12,15 @@ pub struct Args {
     /// - LLVM bitcode files
     /// - CdM-16 assembly files (*.s, *.asm)
     /// - CdM-16 object files (*.obj)
-    files: Vec<PathBuf>,
+    files: Vec<Box<Path>>,
 
     /// Input file directory
     #[arg(short = 'L')]
-    input_dir: Vec<PathBuf>,
+    input_dir: Vec<Box<Path>>,
 
     /// Write output to the filename
     #[arg(short, long)]
-    output: PathBuf,
+    output: Box<Path>,
 
     /// The type of the output file
     #[arg(short = 't', long, value_enum, default_value = "object")]

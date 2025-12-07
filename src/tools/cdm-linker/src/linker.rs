@@ -6,13 +6,10 @@ use base64::prelude::{BASE64_URL_SAFE_NO_PAD, Engine as _};
 use rustc_stable_hash::FromStableHash;
 use rustc_stable_hash::SipHasher128Hash;
 use rustc_stable_hash::StableSipHasher128;
-use std::ffi::OsStr;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::fs::File;
 use std::hash::Hasher;
 use std::path::Path;
-use std::path::PathBuf;
-use std::rc::Rc;
 use strip_ansi_escapes as strip_ansi;
 
 #[derive(Debug)]
@@ -20,17 +17,17 @@ pub struct Session {
     /// Output file type
     out_type: OutputType,
     /// Rlib files to extract BC from
-    archive_files: Vec<Rc<Path>>,
+    archive_files: Vec<Box<Path>>,
     /// LLVM BC files to pass to `llc`
-    bitcode_files: Vec<Rc<Path>>,
+    bitcode_files: Vec<Box<Path>>,
     /// Assembly files to pass to `cocas`
-    assembly_files: Vec<Rc<Path>>,
+    assembly_files: Vec<Box<Path>>,
     /// Object files to pass to `cocas`
-    object_files: Vec<Rc<Path>>,
+    object_files: Vec<Box<Path>>,
     /// Output file path
-    out_file: PathBuf,
+    out_file: Box<Path>,
     /// Directory for intermediate build files
-    build_dir: PathBuf,
+    build_dir: Box<Path>,
 }
 
 // TODO: Add debug info support when cocas is fixed
@@ -61,8 +58,8 @@ impl FromStableHash for Hash128 {
 }
 
 impl Session {
-    pub fn new(out_file: PathBuf, out_type: OutputType) -> anyhow::Result<Self> {
-        let build_dir = out_file.with_extension("cdm.build");
+    pub fn new(out_file: Box<Path>, out_type: OutputType) -> anyhow::Result<Self> {
+        let build_dir: Box<Path> = out_file.with_extension("cdm.build").into();
         std::fs::create_dir_all(&build_dir).context("Could not create build directory")?;
         Ok(Session {
             out_type,
@@ -76,7 +73,7 @@ impl Session {
     }
 
     /// Add a file to link
-    pub fn add_file(&mut self, path: PathBuf) {
+    pub fn add_file(&mut self, path: Box<Path>) {
         let vec = match path.extension() {
             Some(ext) if ext.eq_ignore_ascii_case("s") || ext.eq_ignore_ascii_case("asm") => {
                 &mut self.assembly_files
@@ -89,10 +86,10 @@ impl Session {
             }
             _ => &mut self.bitcode_files,
         };
-        vec.push(path.into());
+        vec.push(path);
     }
 
-    fn out_file_name(&self, in_file: &Path, ext: impl AsRef<OsStr>) -> PathBuf {
+    fn out_file_name(&self, in_file: &Path, ext: impl AsRef<OsStr>) -> Box<Path> {
         let mut hasher = StableSipHasher128::new();
         hasher.write(in_file.as_os_str().as_encoded_bytes());
         let hash: Hash128 = hasher.finish();
@@ -105,7 +102,7 @@ impl Session {
         out_string.push(&string_hash);
         out_string.push(".");
         out_string.push(ext.as_ref());
-        self.build_dir.join(out_string)
+        self.build_dir.join(out_string).into()
     }
 
     fn up_to_date(in_file: &Path, out_file: &Path) -> bool {
@@ -116,7 +113,7 @@ impl Session {
         out_modified >= in_modified
     }
 
-    fn extract_archive(&self, name: &Path, bc_names: &mut Vec<Rc<Path>>) -> anyhow::Result<()> {
+    fn extract_archive(&self, name: &Path, bc_names: &mut Vec<Box<Path>>) -> anyhow::Result<()> {
         let file =
             File::open(name).context(format!("Could not open archive {}", name.display()))?;
         let mut archive = ar::Archive::new(file);
@@ -144,7 +141,7 @@ impl Session {
         Ok(())
     }
 
-    fn compile_bitcode(&self, name: &Path, opt_level: Optimization) -> anyhow::Result<Rc<Path>> {
+    fn compile_bitcode(&self, name: &Path, opt_level: Optimization) -> anyhow::Result<Box<Path>> {
         let out_name = self.out_file_name(name, "asm");
 
         if Self::up_to_date(&name, &out_name) {
@@ -154,7 +151,7 @@ impl Session {
         let mut llc_command = std::process::Command::new("llc");
         let llc_output = llc_command
             .arg(format!("-{}", opt_level))
-            .arg("-o").arg(&out_name)
+            .arg("-o").arg(out_name.as_ref())
             .arg(&name)
             .output()
             .context("An error occured when calling llc. Make sure the llvm-tools component is installed.")?;
@@ -171,7 +168,7 @@ impl Session {
         Ok(out_name.into())
     }
 
-    fn assemble_source(&self, name: &Path, cocas_name: &OsStr) -> anyhow::Result<Rc<Path>> {
+    fn assemble_source(&self, name: &Path, cocas_name: &OsStr) -> anyhow::Result<Box<Path>> {
         let out_name = self.out_file_name(name, "obj");
 
         if Self::up_to_date(&name, &out_name) {
@@ -179,7 +176,7 @@ impl Session {
         }
 
         let mut cocas_command = std::process::Command::new(cocas_name);
-        cocas_command.arg("-o").arg(&out_name).arg("-c").arg(name);
+        cocas_command.arg("-o").arg(out_name.as_ref()).arg("-c").arg(name);
         let cocas_output = cocas_command.output().context(
             "An error occured when calling cocas. \
              Make sure it is available in $PATH or \
@@ -198,9 +195,9 @@ impl Session {
         Ok(out_name.into())
     }
 
-    fn link_objects(&self, objects: &Vec<Rc<Path>>, cocas_name: &OsStr) -> anyhow::Result<()> {
+    fn link_objects(&self, objects: &Vec<Box<Path>>, cocas_name: &OsStr) -> anyhow::Result<()> {
         let mut cocas_command = std::process::Command::new(cocas_name);
-        cocas_command.arg("-o").arg(&self.out_file);
+        cocas_command.arg("-o").arg(self.out_file.as_ref());
         if self.out_type == OutputType::Object {
             cocas_command.arg("-m");
         }
