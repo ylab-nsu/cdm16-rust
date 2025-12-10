@@ -92,8 +92,8 @@ impl Session {
     fn out_file_name(&self, in_file: &Path, ext: impl AsRef<OsStr>) -> Box<Path> {
         let mut hasher = StableSipHasher128::new();
         hasher.write(in_file.as_os_str().as_encoded_bytes());
-        let hash: Hash128 = hasher.finish();
-        let string_hash = BASE64_URL_SAFE_NO_PAD.encode(&hash.0);
+        let Hash128(hash): Hash128 = hasher.finish();
+        let string_hash = BASE64_URL_SAFE_NO_PAD.encode(&hash[..8]);
         let mut out_string = OsString::new();
         if let Some(name) = in_file.file_name() {
             out_string.push(name);
