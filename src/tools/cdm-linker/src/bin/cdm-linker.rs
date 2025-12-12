@@ -11,7 +11,7 @@ pub struct Args {
     /// - Rust rlibs
     /// - LLVM bitcode files
     /// - CdM-16 assembly files (*.s, *.asm)
-    /// - CdM-16 object files (*.obj)
+    /// - CdM-16 object files (*.obj, *.lib)
     files: Vec<PathBuf>,
 
     /// Input file directory
@@ -56,7 +56,7 @@ fn main() -> anyhow::Result<()> {
             Some(ext) if ext.eq_ignore_ascii_case("s") || ext.eq_ignore_ascii_case("asm") => {
                 linker.add_assembly(file)
             }
-            Some(ext) if ext.eq_ignore_ascii_case("obj") => linker.add_object(file),
+            Some(ext) if ext.eq_ignore_ascii_case("obj") || ext.eq_ignore_ascii_case("lib") => linker.add_object(file),
             _ => linker.add_bitcode(file),
         };
     }

@@ -28,7 +28,9 @@ pub(crate) fn target() -> Target {
             only_cdylib: true,
             linker_flavor: LinkerFlavor::Cdm,
             linker: Some("cdm-linker".into()),
-            dll_suffix: ".o".into(),
+            dll_prefix: "".into(),
+            dll_suffix: ".lib".into(),
+            exe_suffix: ".img".into(),
             ..Default::default()
         },
     }

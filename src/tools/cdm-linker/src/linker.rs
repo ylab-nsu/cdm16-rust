@@ -34,7 +34,7 @@ impl Session {
         let opt_path = out_path.with_extension("optimized.bc");
         let sym_path = out_path.with_extension("symbols.txt");
         let asm_path = out_path.with_extension("asm");
-        let merge_path = out_path.with_extension("merge.obj");
+        let merge_path = out_path.with_extension("merge.lib");
 
         Session {
             out_type,

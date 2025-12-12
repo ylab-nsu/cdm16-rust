@@ -9,7 +9,7 @@ cdm-linker [OPTIONS] -o <OUTPUT> [FILES]
 
 ### Arguments
 
-`[FILES]` - Input files: rust rlibs, llvm bitcode files, CdM-16 assembly files (*\*.s*, *\*.asm*), CdM-16 object files (*\*.obj*)
+`[FILES]` - Input files: rust rlibs, llvm bitcode files, CdM-16 assembly files (*\*.s*, *\*.asm*), CdM-16 object files (*\*.obj*, *\*.lib*)
 
 ### Options
 
