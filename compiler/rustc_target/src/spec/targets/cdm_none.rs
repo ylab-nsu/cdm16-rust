@@ -1,5 +1,5 @@
 use crate::spec::{
-    PanicStrategy, RelocModel, Target, TargetMetadata, TargetOptions,
+    PanicStrategy, RelocModel, Target, TargetMetadata, TargetOptions, LinkerFlavor, FramePointer
 };
 
 pub(crate) fn target() -> Target {
@@ -22,6 +22,7 @@ pub(crate) fn target() -> Target {
             panic_strategy: PanicStrategy::Abort,
             relocation_model: RelocModel::Static,
             eh_frame_header: false,
+            frame_pointer: FramePointer::Always,
             ..Default::default()
         },
     }
