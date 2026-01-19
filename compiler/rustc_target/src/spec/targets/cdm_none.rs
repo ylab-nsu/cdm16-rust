@@ -1,5 +1,5 @@
 use crate::spec::{
-    PanicStrategy, RelocModel, Target, TargetMetadata, TargetOptions, LinkerFlavor, FramePointer
+    PanicStrategy, RelocModel, Target, TargetMetadata, TargetOptions, LinkerFlavor, FramePointer, LinkSelfContainedDefault
 };
 
 pub(crate) fn target() -> Target {
@@ -28,6 +28,7 @@ pub(crate) fn target() -> Target {
             dynamic_linking: true,
             only_cdylib: true,
             linker_flavor: LinkerFlavor::Cdm,
+            link_self_contained: LinkSelfContainedDefault::True,
             linker: Some("cdm-linker".into()),
             dll_prefix: "".into(),
             dll_suffix: ".lib".into(),

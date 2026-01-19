@@ -22,6 +22,7 @@ channel = "auto-detect"
 download-rustc = false
 # Build the llvm-bitcode-linker
 llvm-bitcode-linker = true
+cdm-linker = true
 
 [dist]
 # Use better compression when preparing tarballs.

@@ -295,6 +295,15 @@ install!((self, builder, _config),
             );
         }
     };
+    CdmLinker, alias = "cdm-linker", Self::should_build(_config), only_hosts: true, {
+        if let Some(tarball) = builder.ensure(dist::CdmLinker { build_compiler: self.compiler, target: self.target }) {
+            install_sh(builder, "cdm-linker", self.compiler.stage, Some(self.target), &tarball);
+        } else {
+            builder.info(
+                &format!("skipping cdm-linker stage{} ({})", self.compiler.stage, self.target),
+            );
+        }
+    };
 );
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]

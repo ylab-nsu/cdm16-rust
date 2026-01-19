@@ -2116,6 +2116,31 @@ impl Step for Assemble {
             }
         };
 
+        let maybe_install_cdm_linker = || {
+            if builder.config.cdm_linker_enabled {
+                trace!("cdm-linker enabled, installing");
+                let cdm_linker = builder.ensure(
+                    crate::core::build_steps::tool::CdmLinker::from_target_compiler(
+                        builder,
+                        target_compiler,
+                    ),
+                );
+
+                // Copy the cdm-linker to the self-contained binary directory
+                let bindir_self_contained = builder
+                    .sysroot(target_compiler)
+                    .join(format!("lib/rustlib/{}/bin/self-contained", target_compiler.host));
+                let tool_exe = exe("cdm-linker", target_compiler.host);
+
+                t!(fs::create_dir_all(&bindir_self_contained));
+                builder.copy_link(
+                    &cdm_linker.tool_path,
+                    &bindir_self_contained.join(tool_exe),
+                    FileType::Executable,
+                );
+            }
+        };
+
         // If we're downloading a compiler from CI, we can use the same compiler for all stages other than 0.
         if builder.download_rustc() {
             trace!("`download-rustc` requested, reusing CI compiler for stage > 0");
@@ -2134,6 +2159,8 @@ impl Step for Assemble {
             // FIXME: this is incomplete, we do not copy a bunch of other stuff to the downloaded
             // sysroot...
             maybe_install_llvm_bitcode_linker();
+
+            maybe_install_cdm_linker();
 
             return target_compiler;
         }
@@ -2344,6 +2371,7 @@ impl Step for Assemble {
         }
 
         maybe_install_llvm_bitcode_linker();
+        maybe_install_cdm_linker();
 
         // Ensure that `libLLVM.so` ends up in the newly build compiler directory,
         // so that it can be found when the newly built `rustc` is run.

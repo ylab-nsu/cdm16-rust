@@ -1240,6 +1240,81 @@ impl Step for LlvmBitcodeLinker {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct CdmLinker {
+    build_compiler: Compiler,
+    target: TargetSelection,
+}
+
+impl CdmLinker {
+    /// Returns `CdmLinker` that will be **compiled** by the passed compiler, for the given
+    /// `target`.
+    pub fn from_build_compiler(build_compiler: Compiler, target: TargetSelection) -> Self {
+        Self { build_compiler, target }
+    }
+
+    /// Returns `CdmLinker` that should be **used** by the passed compiler.
+    pub fn from_target_compiler(builder: &Builder<'_>, target_compiler: Compiler) -> Self {
+        Self {
+            build_compiler: get_tool_target_compiler(
+                builder,
+                ToolTargetBuildMode::Dist(target_compiler),
+            ),
+            target: target_compiler.host,
+        }
+    }
+
+    /// Return a compiler that is able to build this tool for the given `target`.
+    pub fn get_build_compiler_for_target(
+        builder: &Builder<'_>,
+        target: TargetSelection,
+    ) -> Compiler {
+        get_tool_target_compiler(builder, ToolTargetBuildMode::Build(target))
+    }
+}
+
+impl Step for CdmLinker {
+    type Output = ToolBuildResult;
+    const DEFAULT: bool = true;
+    const ONLY_HOSTS: bool = true;
+
+    fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
+        let builder = run.builder;
+        run.path("src/tools/cdm-linker")
+            .default_condition(builder.tool_enabled("cdm-linker"))
+    }
+
+    fn make_run(run: RunConfig<'_>) {
+        run.builder.ensure(CdmLinker {
+            build_compiler: Self::get_build_compiler_for_target(run.builder, run.target),
+            target: run.target,
+        });
+    }
+
+    #[cfg_attr(
+        feature = "tracing",
+        instrument(level = "debug", name = "CdmLinker::run", skip_all)
+    )]
+    fn run(self, builder: &Builder<'_>) -> ToolBuildResult {
+        builder.ensure(ToolBuild {
+            build_compiler: self.build_compiler,
+            target: self.target,
+            tool: "cdm-linker",
+            mode: Mode::ToolTarget,
+            path: "src/tools/cdm-linker",
+            source_type: SourceType::InTree,
+            extra_features: vec![],
+            allow_features: "",
+            cargo_args: Vec::new(),
+            artifact_kind: ToolArtifactKind::Binary,
+        })
+    }
+
+    fn metadata(&self) -> Option<StepMetadata> {
+        Some(StepMetadata::build("CdmLinker", self.target).built_by(self.build_compiler))
+    }
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct LibcxxVersionTool {
     pub target: TargetSelection,
 }

@@ -984,6 +984,7 @@ impl<'a> Builder<'a> {
                 tool::OptimizedDist,
                 tool::CoverageDump,
                 tool::LlvmBitcodeLinker,
+                tool::CdmLinker,
                 tool::RustcPerf,
                 tool::WasmComponentLd,
                 tool::LldWrapper
@@ -1004,6 +1005,7 @@ impl<'a> Builder<'a> {
                 clippy::Jsondoclint,
                 clippy::LintDocs,
                 clippy::LlvmBitcodeLinker,
+                clippy::CdmLinker,
                 clippy::Miri,
                 clippy::MiroptTestTools,
                 clippy::OptDist,
@@ -1153,6 +1155,7 @@ impl<'a> Builder<'a> {
                 dist::Miri,
                 dist::LlvmTools,
                 dist::LlvmBitcodeLinker,
+                dist::CdmLinker,
                 dist::RustDev,
                 dist::Bootstrap,
                 dist::Extended,

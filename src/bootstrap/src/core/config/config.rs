@@ -177,6 +177,8 @@ pub struct Config {
     pub llvm_tools_enabled: bool,
     pub llvm_bitcode_linker_enabled: bool,
 
+    pub cdm_linker_enabled: bool,
+
     pub llvm_cflags: Option<String>,
     pub llvm_cxxflags: Option<String>,
     pub llvm_ldflags: Option<String>,

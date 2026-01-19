@@ -51,6 +51,7 @@ define_config! {
         save_toolstates: Option<String> = "save-toolstates",
         codegen_backends: Option<Vec<String>> = "codegen-backends",
         llvm_bitcode_linker: Option<bool> = "llvm-bitcode-linker",
+        cdm_linker: Option<bool> = "cdm-linker",
         lld: Option<bool> = "lld",
         lld_mode: Option<LldMode> = "use-lld",
         llvm_tools: Option<bool> = "llvm-tools",
@@ -313,6 +314,7 @@ pub fn check_incompatible_options_for_ci_rustc(
         debuginfo_level_rustc,
         llvm_tools,
         llvm_bitcode_linker,
+        cdm_linker,
         lto,
         stack_protector,
         strip,
@@ -380,6 +382,7 @@ pub fn check_incompatible_options_for_ci_rustc(
     err!(current_rust_config.lld_mode, lld_mode, "rust");
     err!(current_rust_config.llvm_tools, llvm_tools, "rust");
     err!(current_rust_config.llvm_bitcode_linker, llvm_bitcode_linker, "rust");
+    err!(current_rust_config.cdm_linker, cdm_linker, "rust");
     err!(current_rust_config.jemalloc, jemalloc, "rust");
     err!(current_rust_config.default_linker, default_linker, "rust");
     err!(current_rust_config.stack_protector, stack_protector, "rust");
@@ -500,6 +503,7 @@ impl Config {
                 lld: lld_enabled_toml,
                 llvm_tools,
                 llvm_bitcode_linker,
+                cdm_linker,
                 deny_warnings,
                 backtrace_on_ice,
                 verify_llvm_ir,
@@ -596,6 +600,7 @@ impl Config {
             }
             set(&mut self.lld_mode, lld_mode);
             set(&mut self.llvm_bitcode_linker_enabled, llvm_bitcode_linker);
+            set(&mut self.cdm_linker_enabled, cdm_linker);
 
             self.rust_randomize_layout = randomize_layout.unwrap_or_default();
             self.llvm_tools_enabled = llvm_tools.unwrap_or(true);

@@ -344,6 +344,7 @@ lint_any!(
     Jsondoclint, "src/tools/jsondoclint", "jsondoclint";
     LintDocs, "src/tools/lint-docs", "lint-docs";
     LlvmBitcodeLinker, "src/tools/llvm-bitcode-linker", "llvm-bitcode-linker";
+    CdmLinker, "src/tools/cdm-linker", "cdm-linker";
     Miri, "src/tools/miri", "miri";
     MiroptTestTools, "src/tools/miropt-test-tools", "miropt-test-tools";
     OptDist, "src/tools/opt-dist", "opt-dist";

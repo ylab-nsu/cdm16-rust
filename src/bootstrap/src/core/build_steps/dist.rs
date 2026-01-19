@@ -1583,6 +1583,10 @@ impl Step for Extended {
             build_compiler: compiler,
             target
         });
+        add_component!("cdm-linker" => CdmLinker {
+            build_compiler: compiler,
+            target
+        });
 
         let etc = builder.src.join("src/etc/installer");
 
@@ -2390,6 +2394,55 @@ impl Step for LlvmBitcodeLinker {
         // Prepare the image directory
         let mut tarball = Tarball::new(builder, "llvm-bitcode-linker", &target.triple);
         tarball.set_overlay(OverlayKind::LlvmBitcodeLinker);
+        tarball.is_preview(true);
+
+        tarball.add_file(&llbc_linker.tool_path, self_contained_bin_dir, FileType::Executable);
+
+        Some(tarball.generate())
+    }
+}
+
+/// Distributes the `cdm-linker` tool so that it can be used by a compiler whose host
+/// is `target`.
+#[derive(Debug, PartialOrd, Ord, Clone, Hash, PartialEq, Eq)]
+pub struct CdmLinker {
+    /// The linker will be compiled by this compiler.
+    pub build_compiler: Compiler,
+    /// The linker will by usable by rustc on this host.
+    pub target: TargetSelection,
+}
+
+impl Step for CdmLinker {
+    type Output = Option<GeneratedTarball>;
+    const DEFAULT: bool = true;
+    const ONLY_HOSTS: bool = true;
+
+    fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
+        let default = should_build_extended_tool(run.builder, "cdm-linker");
+        run.alias("cdm-linker").default_condition(default)
+    }
+
+    fn make_run(run: RunConfig<'_>) {
+        run.builder.ensure(CdmLinker {
+            build_compiler: tool::CdmLinker::get_build_compiler_for_target(
+                run.builder,
+                run.target,
+            ),
+            target: run.target,
+        });
+    }
+
+    fn run(self, builder: &Builder<'_>) -> Option<GeneratedTarball> {
+        let target = self.target;
+
+        let llbc_linker = builder
+            .ensure(tool::CdmLinker::from_build_compiler(self.build_compiler, target));
+
+        let self_contained_bin_dir = format!("lib/rustlib/{}/bin/self-contained", target.triple);
+
+        // Prepare the image directory
+        let mut tarball = Tarball::new(builder, "cdm-linker", &target.triple);
+        tarball.set_overlay(OverlayKind::CdmLinker);
         tarball.is_preview(true);
 
         tarball.add_file(&llbc_linker.tool_path, self_contained_bin_dir, FileType::Executable);
