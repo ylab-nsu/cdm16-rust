@@ -253,6 +253,7 @@ pub fn initialize_available_targets() {
         LLVMInitializeCDMTargetInfo,
         LLVMInitializeCDMTarget,
         LLVMInitializeCDMTargetMC,
-        LLVMInitializeCDMAsmPrinter
+        LLVMInitializeCDMAsmPrinter,
+        LLVMInitializeCDMAsmParser
     );
 }
