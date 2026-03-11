@@ -288,6 +288,9 @@ impl<'ll, 'tcx> AsmBuilderMethods<'tcx> for Builder<'_, 'll, 'tcx> {
                 InlineAsmArch::CSKY => {
                     constraints.push("~{psr}".to_string());
                 }
+                InlineAsmArch::Cdm => {
+                    constraints.push("~{psr}".to_string());
+                }
             }
         }
         if !options.contains(InlineAsmOptions::NOMEM) {
@@ -706,6 +709,7 @@ fn reg_to_llvm(reg: InlineAsmRegOrRegClass, layout: Option<&TyAndLayout<'_>>) ->
             CSKY(CSKYInlineAsmRegClass::reg) => "r",
             CSKY(CSKYInlineAsmRegClass::freg) => "f",
             SpirV(SpirVInlineAsmRegClass::reg) => bug!("LLVM backend does not support SPIR-V"),
+            Cdm(CdmInlineAsmRegClass::reg) => "r",
             Err => unreachable!(),
         }
         .to_string(),
@@ -797,6 +801,7 @@ fn modifier_to_llvm(
         SpirV(SpirVInlineAsmRegClass::reg) => bug!("LLVM backend does not support SPIR-V"),
         M68k(_) => None,
         CSKY(_) => None,
+        Cdm(_) => None,
         Err => unreachable!(),
     }
 }
@@ -873,6 +878,7 @@ fn dummy_output_type<'ll>(cx: &CodegenCx<'ll, '_>, reg: InlineAsmRegClass) -> &'
         CSKY(CSKYInlineAsmRegClass::reg) => cx.type_i32(),
         CSKY(CSKYInlineAsmRegClass::freg) => cx.type_f32(),
         SpirV(SpirVInlineAsmRegClass::reg) => bug!("LLVM backend does not support SPIR-V"),
+        Cdm(CdmInlineAsmRegClass::reg) => cx.type_i16(),
         Err => unreachable!(),
     }
 }
