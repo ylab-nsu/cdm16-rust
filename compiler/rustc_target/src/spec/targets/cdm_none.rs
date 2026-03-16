@@ -25,13 +25,8 @@ pub(crate) fn target() -> Target {
             relocation_model: RelocModel::Static,
             eh_frame_header: false,
             frame_pointer: FramePointer::Always,
-            linker: Some("clang".into()),
-            linker_flavor: LinkerFlavor::Gnu(Cc::Yes, Lld::Yes),
-            no_default_libraries: false,
-            pre_link_args: TargetOptions::link_args(
-                LinkerFlavor::Gnu(Cc::Yes, Lld::No),
-                &["--target=cdm-unknown-unknown-unknown"],
-            ),
+            linker: Some("rust-lld".into()),
+            linker_flavor: LinkerFlavor::Gnu(Cc::No, Lld::Yes),
             ..Default::default()
         },
     }
