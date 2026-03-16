@@ -8,6 +8,10 @@
     all(not(feature = "no-asm"), target_arch = "x86_64"),
     path = "x86_64.rs"
 )]
+#[cfg_attr(
+    all(not(feature = "no-asm"), target_arch = "cdm"),
+    path = "cdm.rs"
+)]
 mod impls;
 
 intrinsics! {
