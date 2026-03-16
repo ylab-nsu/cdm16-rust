@@ -1,5 +1,4 @@
 use core::arch::asm;
-use core::arch::naked_asm;
 use core::ffi::c_int;
 
 // Smaller and simpler implementations for CDM-16.
@@ -15,10 +14,13 @@ pub unsafe fn copy_forward(dest: *mut u8, src: *const u8, count: usize) {
         "inc r0",
         "inc r1",
         "dec r2",
-        "bge 0b",
+        "bgt 0b",
         "1:",
-        in("r0") dest, in("r1") src, in("r2") count,
-        clobber_abi("C")
+        in("r0") dest,
+        in("r1") src,
+        in("r2") count,
+        clobber_abi("C"),
+        options(nostack),
     );
 }
 
@@ -37,10 +39,13 @@ pub unsafe fn copy_backward(dest: *mut u8, src: *const u8, count: usize) {
         "dec r0",
         "dec r1",
         "dec r2",
-        "bge 0b",
+        "bgt 0b",
         "1:",
-        in("r0") dest, in("r1") src, in("r2") count,
-        clobber_abi("C")
+        in("r0") dest,
+        in("r1") src,
+        in("r2") count,
+        clobber_abi("C"),
+        options(nostack),
     );
 }
 
@@ -53,10 +58,13 @@ pub unsafe fn set_bytes(s: *mut u8, c: u8, n: usize) {
         "stb r0, r1",
         "inc r0",
         "dec r2",
-        "bge 0b",
+        "bgt 0b",
         "1:",
-        in("r0") s, in("r1") c, in("r2") n,
-        clobber_abi("C")
+        in("r0") s,
+        in("r1") c,
+        in("r2") n,
+        clobber_abi("C"),
+        options(nostack),
     );
 }
 
@@ -75,10 +83,14 @@ pub unsafe fn compare_bytes(s1: *const u8, s2: *const u8, n: usize) -> c_int {
         "inc r0",
         "inc r1",
         "dec r2",
-        "bge 0b",
+        "bgt 0b",
         "1:",
-        in("r0") s1, in("r1") s2, in("r2") n, out("r4") result,
-        clobber_abi("C")
+        in("r0") s1,
+        in("r1") s2,
+        in("r2") n,
+        out("r4") result,
+        clobber_abi("C"),
+        options(readonly, nostack),
     );
     result
 }
@@ -95,9 +107,11 @@ pub unsafe fn c_string_length(mut s: *const core::ffi::c_char) -> usize {
         "ldb r0, r2",
         "tst r2",
         "bnz 0b",
-        "sub r0, r1, r0",
-        inout("r0") s => len,
-        clobber_abi("C")
+        "sub r0, r1, r1",
+        in("r0") s,
+        out("r1") len,
+        clobber_abi("C"),
+        options(readonly, nostack),
     );
     len
 }
