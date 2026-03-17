@@ -85,4 +85,7 @@ pub mod x86;
 #[cfg(target_arch = "x86_64")]
 pub mod x86_64;
 
+#[cfg(target_arch = "cdm")]
+pub mod cdm;
+
 pub mod probestack;
