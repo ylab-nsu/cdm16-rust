@@ -95,15 +95,6 @@ pub mod arch {
         pub use crate::core_arch::riscv_shared::*;
     }
 
-    /// Platform-specific intrinsics for the `cdm` platform.
-    #[cfg(any(target_arch = "cdm", doc))]
-    #[doc(cfg(target_arch = "cdm"))]
-    #[stable(feature = "cdm_intrinsics", since = "1.90")]
-    pub mod cdm {
-        #[stable(feature = "cdm_intrinsics", since = "1.90")]
-        pub use crate::core_arch::cdm::*;
-    }
-
     /// Platform-specific intrinsics for the `wasm32` platform.
     ///
     /// This module provides intrinsics specific to the WebAssembly
@@ -337,10 +328,6 @@ mod riscv32;
 #[cfg(any(target_arch = "riscv64", doc))]
 #[doc(cfg(any(target_arch = "riscv64")))]
 mod riscv64;
-
-#[cfg(any(target_arch = "cdm", doc))]
-#[doc(cfg(any(target_arch = "cdm")))]
-mod cdm;
 
 #[cfg(any(target_family = "wasm", doc))]
 #[doc(cfg(target_family = "wasm"))]
