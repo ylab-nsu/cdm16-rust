@@ -26,8 +26,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: nightly
-          name: 'Nightly'
+          tag_name: cdm-nightly
+          name: 'CDM Nightly'
           body: ' '
           prerelease: true
           files: |
