@@ -1,0 +1,36 @@
+name: '[CDM] Build'
+
+on:
+  workflow_call:
+    inputs:
+      upload:
+        type: boolean
+        required: true
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, macos-26]
+    defaults:
+      run:
+        shell: bash
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Build Rust
+        run: |
+          ./x dist --ci true --config ./cdm.dist.toml
+      - name: Upload artifacts
+        if: inputs.upload
+        uses: actions/upload-artifact@v6
+        with:
+          compression-level: 0
+          name: ${{ matrix.os }}
+          path: |
+            ./build/dist/rustc-nightly-*.tar.gz
+            ./build/dist/rust-std-nightly-*.tar.gz
+            ./build/dist/rust-src-nightly.tar.gz
