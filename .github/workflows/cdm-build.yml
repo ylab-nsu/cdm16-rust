@@ -38,7 +38,7 @@ jobs:
           archive: false
           path: ./build/dist/rust-std-nightly-*.tar.gz
       - name: Upload rust-src
-        if: inputs.upload
+        if: inputs.upload && (runner.os == 'Linux')
         uses: actions/upload-artifact@v7
         with:
           archive: false
