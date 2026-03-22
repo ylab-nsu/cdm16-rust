@@ -25,13 +25,21 @@ jobs:
       - name: Build Rust
         run: |
           ./x dist --ci true --config ./cdm.dist.toml
-      - name: Upload artifacts
+      - name: Upload rustc
         if: inputs.upload
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          compression-level: 0
-          name: ${{ matrix.os }}
-          path: |
-            ./build/dist/rustc-nightly-*.tar.gz
-            ./build/dist/rust-std-nightly-*.tar.gz
-            ./build/dist/rust-src-nightly.tar.gz
+          archive: false
+          path: ./build/dist/rustc-nightly-*.tar.gz
+      - name: Upload rust-std
+        if: inputs.upload
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: ./build/dist/rust-std-nightly-*.tar.gz
+      - name: Upload rust-src
+        if: inputs.upload
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: ./build/dist/rust-src-nightly.tar.gz

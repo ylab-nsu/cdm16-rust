@@ -1,5 +1,8 @@
 name: '[CDM] Nightly build'
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   schedule:
@@ -18,7 +21,7 @@ jobs:
       - name: Create subfolder
         run: mkdir artifacts_download
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: ./artifacts_download
       - name: Update Nightly Release
@@ -28,7 +31,7 @@ jobs:
         with:
           tag_name: cdm-nightly
           name: 'CDM Nightly'
-          body: ' '
+          body: 'Nightly releases are made every night. They contain the newest features and fixes, but may be unstable.'
           prerelease: true
           files: |
             ${{github.workspace}}/artifacts_download/*/*.tar.gz
