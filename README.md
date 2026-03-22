@@ -1,77 +1,71 @@
-<div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/rust-lang/www.rust-lang.org/master/static/images/rust-social-wide-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/rust-lang/www.rust-lang.org/master/static/images/rust-social-wide-light.svg">
-    <img alt="The Rust Programming Language: A language empowering everyone to build reliable and efficient software"
-         src="https://raw.githubusercontent.com/rust-lang/www.rust-lang.org/master/static/images/rust-social-wide-light.svg"
-         width="50%">
-  </picture>
+# Rust for CDM-16
 
-[Website][Rust] | [Getting started] | [Learn] | [Documentation] | [Contributing]
-</div>
+This is a fork of the Rust compiler and toolchain with experimental support for targetting the [CDM-16 educational processor]. It is based on the [Neo CDM-16 LLVM backend].
 
-This is the main source code repository for [Rust]. It contains the compiler,
-standard library, and documentation.
+You would usually want to use the hardware support crates from [`cdm-rs`] in your projects. These provide startup logic and utilities for controlling processor interruputs.
 
-[Rust]: https://www.rust-lang.org/
-[Getting Started]: https://www.rust-lang.org/learn/get-started
-[Learn]: https://www.rust-lang.org/learn
-[Documentation]: https://www.rust-lang.org/learn#learn-use
-[Contributing]: CONTRIBUTING.md
+For a complete usage example, check out [`cdm-paint-rs`].
 
-## Why Rust?
+[CDM-16 educational processor]: https://github.com/cdm-processors/cdm-devkit/blob/d1b647bb8ae9db43be7757a76fa63ddb112fa450/docs/cdm16/cdm16-overview.md
+[Neo CDM-16 LLVM backend]: https://github.com/ylab-nsu/cdm16-llvm-neo/
+[`cdm-rs`]: https://github.com/aelsi2/cdm-rs
+[`cdm-paint-rs`]: https://github.com/aelsi2/cdm-paint-rs
 
-- **Performance:** Fast and memory-efficient, suitable for critical services, embedded devices, and easily integrated with other languages.
+## Installation
 
-- **Reliability:** Our rich type system and ownership model ensure memory and thread safety, reducing bugs at compile-time.
+[![Nightly Release](https://img.shields.io/github/v/release/ylab-nsu/cdm16-rust?include_prereleases&filter=cdm-nightly)](https://github.com/ylab-nsu/cdm16-rust/releases/cdm-nightly)
 
-- **Productivity:** Comprehensive documentation, a compiler committed to providing great diagnostics, and advanced tooling including package manager and build tool ([Cargo]), auto-formatter ([rustfmt]), linter ([Clippy]) and editor support ([rust-analyzer]).
+Prerequisites: rustup, nightly toolchain with the cargo component.
 
-[Cargo]: https://github.com/rust-lang/cargo
-[rustfmt]: https://github.com/rust-lang/rustfmt
-[Clippy]: https://github.com/rust-lang/rust-clippy
-[rust-analyzer]: https://github.com/rust-lang/rust-analyzer
+Get the latest nightly release. Download the `rustc`, `rust-std` and `rust-src` packages for your platform (currently Linux x86\_64 and macOS AArch64 are supported).
 
-## Quick Start
+```sh
+# Linux
+curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rustc-nightly-x86_64-unknown-linux-gnu.tar.gz
+curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-std-nightly-x86_64-unknown-linux-gnu.tar.gz
+curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-src-nightly.tar.gz
+```
+```sh
+# macOS
+curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rustc-nightly-aarch64-apple-darwin.tar.gz
+curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-std-nightly-aarch64-apple-darwin.tar.gz
+curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-src-nightly.tar.gz
+```
 
-Read ["Installation"] from [The Book].
+Extract each package.
+```sh
+# Linux
+tar -xzf rustc-nightly-x86_64-unknown-linux-gnu.tar.gz
+tar -xzf rust-std-nightly-x86_64-unknown-linux-gnu.tar.gz
+tar -xzf rust-src-nightly.tar.gz
+```
+```sh
+# macOS
+tar -xzf rustc-nightly-aarch64-apple-darwin.tar.gz
+tar -xzf rust-std-nightly-aarch64-apple-darwin.tar.gz
+tar -xzf rust-src-nightly.tar.gz
+```
 
-["Installation"]: https://doc.rust-lang.org/book/ch01-01-installation.html
-[The Book]: https://doc.rust-lang.org/book/index.html
+Create a directory for the CDM-16 rust toolchain, for example `~/.rust-cdm`.
+```sh
+mkdir ~/.rust-cdm
+```
 
-## Installing from Source
+Run the `install.sh` script inside each of the extracted directories with `--prefix="PATH TO NEW DIRECTORY"`.
+```sh
+# Linux
+./rustc-nightly-x86_64-unknown-linux-gnu/install.sh --prefix=~/.rust-cdm
+./rust-std-nightly-x86_64-unknown-linux-gnu/install.sh --prefix=~/.rust-cdm
+./rust-src-nightly/install.sh --prefix=~/.rust-cdm
+```
+```sh
+# macOS
+./rustc-nightly-aarch64-apple-darwin/install.sh --prefix=~/.rust-cdm
+./rust-std-nightly-aarch64-apple-darwin/install.sh --prefix=~/.rust-cdm
+./rust-src-nightly/install.sh --prefix=~/.rust-cdm
+```
 
-If you really want to install from source (though this is not recommended), see
-[INSTALL.md](INSTALL.md).
-
-## Getting Help
-
-See https://www.rust-lang.org/community for a list of chat platforms and forums.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## License
-
-Rust is primarily distributed under the terms of both the MIT license and the
-Apache License (Version 2.0), with portions covered by various BSD-like
-licenses.
-
-See [LICENSE-APACHE](LICENSE-APACHE), [LICENSE-MIT](LICENSE-MIT), and
-[COPYRIGHT](COPYRIGHT) for details.
-
-## Trademark
-
-[The Rust Foundation][rust-foundation] owns and protects the Rust and Cargo
-trademarks and logos (the "Rust Trademarks").
-
-If you want to use these names or brands, please read the
-[Rust language trademark policy][trademark-policy].
-
-Third-party logos may be subject to third-party copyrights and trademarks. See
-[Licenses][policies-licenses] for details.
-
-[rust-foundation]: https://rustfoundation.org/
-[trademark-policy]: https://rustfoundation.org/policy/rust-trademark-policy/
-[policies-licenses]: https://www.rust-lang.org/policies/licenses
+Register the installed toolchain in rustup.
+```sh
+rustup toolchain link cdm ~/.rust-cdm
+```
