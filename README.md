@@ -1,8 +1,8 @@
 # Rust for CDM-16
 
-This is a fork of the Rust compiler and toolchain with experimental support for targetting the [CDM-16 educational processor]. It is based on the [Neo CDM-16 LLVM backend].
+This is a fork of the Rust compiler and toolchain with experimental support for targeting the [CDM-16 educational processor]. It is based on the [Neo CDM-16 LLVM backend].
 
-You would usually want to use the hardware support crates from [`cdm-rs`] in your projects. These provide startup logic and utilities for controlling processor interruputs.
+You would usually want to use the hardware support crates from [`cdm-rs`] in your projects. They provide startup logic and utilities for controlling processor interrupts.
 
 For a complete usage example, check out [`cdm-paint-rs`].
 
@@ -15,9 +15,9 @@ For a complete usage example, check out [`cdm-paint-rs`].
 
 [![Nightly Release](https://img.shields.io/github/v/release/ylab-nsu/cdm16-rust?include_prereleases&filter=cdm-nightly)](https://github.com/ylab-nsu/cdm16-rust/releases/cdm-nightly)
 
-Prerequisites: rustup, nightly toolchain with the cargo component.
+Prerequisites: `rustup`, nightly toolchain with `cargo` component.
 
-Get the latest nightly release. Download the `rustc`, `rust-std` and `rust-src` packages for your platform (currently Linux x86\_64 and macOS AArch64 are supported).
+Download the latest `rustc`, `rust-std` and `rust-src` packages for your platform (currently Linux x86\_64 and macOS AArch64 are supported).
 
 ```sh
 # Linux
@@ -32,7 +32,7 @@ curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/ru
 curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-src-nightly.tar.gz
 ```
 
-Extract each package.
+Extract the packages.
 ```sh
 # Linux
 tar -xzf rustc-nightly-x86_64-unknown-linux-gnu.tar.gz
@@ -46,12 +46,12 @@ tar -xzf rust-std-nightly-aarch64-apple-darwin.tar.gz
 tar -xzf rust-src-nightly.tar.gz
 ```
 
-Create a directory for the CDM-16 rust toolchain, for example `~/.rust-cdm`.
+Create a directory for the CDM-16 Rust toolchain, for example `~/.rust-cdm`.
 ```sh
 mkdir ~/.rust-cdm
 ```
 
-Run the `install.sh` script inside each of the extracted directories with `--prefix="PATH TO NEW DIRECTORY"`.
+Run the `install.sh` script from each of the extracted directories with `--prefix="PATH TO TOOLCHAIN DIR"`.
 ```sh
 # Linux
 ./rustc-nightly-x86_64-unknown-linux-gnu/install.sh --prefix=~/.rust-cdm
@@ -65,7 +65,7 @@ Run the `install.sh` script inside each of the extracted directories with `--pre
 ./rust-src-nightly/install.sh --prefix=~/.rust-cdm
 ```
 
-Register the installed toolchain in rustup.
+Register the installed toolchain in `rustup`.
 ```sh
 rustup toolchain link cdm ~/.rust-cdm
 ```
