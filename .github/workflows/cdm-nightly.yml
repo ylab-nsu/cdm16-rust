@@ -1,8 +1,5 @@
 name: '[CDM] Nightly build'
 
-permissions:
-  contents: write
-
 on:
   workflow_dispatch:
   schedule:
@@ -17,6 +14,8 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Create subfolder
         run: mkdir artifacts_download
