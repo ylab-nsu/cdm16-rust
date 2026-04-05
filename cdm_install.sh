@@ -13,8 +13,8 @@ print_help() {
 }
 
 get_triple() {
-    OS="$(uname -sm)"
-    case "$OS" in
+    os="$(uname -sm)"
+    case "$os" in
         "Darwin arm64")
             echo aarch64-apple-darwin
             ;;
@@ -22,7 +22,7 @@ get_triple() {
             echo x86_64-unknown-linux-gnu
             ;;
         *)
-            echo "Sorry, your operating system ($OS) is not supported yet." >&2
+            echo "Sorry, your operating system ($os) is not supported yet." >&2
             return 1
             ;;
     esac
@@ -40,32 +40,37 @@ expand_tilde() {
             echo "$HOME/$home_path"
             ;;
         *)
-            echo $1
+            echo "$1"
             ;;
     esac
 }
 
 get_default_install_dir() {
     if [ -z "$HOME" ]; then
-        echo "Can't determine the default install directory because \$HOME is not set." >&2
-        echo "Please, re-log into the system or specify the install directory explicitly" >&2
-        return 1
+        if [ "$1" -eq 0 ]; then
+            echo "./.rust-cdm"
+            return 0
+        else
+            echo "Can't determine the default install directory because \$HOME is not set." >&2
+            echo "Please, re-log into the system or specify the directory with -d" >&2
+            return 1
+        fi
     fi
     echo "$HOME/.rust-cdm"
 }
 
 check_tools() {
-    RESULT=0
+    result=0
     for tool in "$@"; do
         if ! command -v "$tool" >/dev/null; then
             echo "Missing tool: $tool" >&2
-            RESULT=1
+            result=1
         fi
     done
-    if [ "$RESULT" -ne 0 ]; then
+    if [ "$result" -ne 0 ]; then
         echo "Please install these with your package manager." >&2
     fi
-    return $RESULT
+    return $result
 }
 
 check_install_dir() {
@@ -112,7 +117,7 @@ prompt_input() {
     while true; do
         printf "%s " "$3"
         read resp </dev/tty
-        resp=$(expand_tilde "$resp")
+        resp=$(expand_tilde "$resp") || continue
         if [ -z "$resp" ]; then
             eval "resp=\"\$$1\""
         fi
@@ -142,18 +147,18 @@ confirm_install() {
 }
 
 
-INSTALL_DIR=
-VERSION=
-TRIPLE=
-TOOLCHAIN_NAME=
-NO_ASK=
+install_dir=
+version=
+triple=
+toolchain_name=
+no_ask=
 
 while getopts "d:v:t:sh" opt; do
     case $opt in
-        d) INSTALL_DIR="$OPTARG" ;;
-        v) VERSION="$OPTARG" ;;
-        t) TOOLCHAIN_NAME="$OPTARG" ;;
-        s) NO_ASK=1 ;;
+        d) install_dir="$OPTARG" ;;
+        v) version="$OPTARG" ;;
+        t) toolchain_name="$OPTARG" ;;
+        s) no_ask=1 ;;
         h)
             print_help
             exit 0
@@ -165,77 +170,78 @@ while getopts "d:v:t:sh" opt; do
     esac
 done
 
-TRIPLE=$(get_triple)
-if [ -z "$INSTALL_DIR" ]; then
-    INSTALL_DIR=$(get_default_install_dir)
-fi
-if [ -z "$VERSION" ]; then
-    VERSION=cdm-nightly
-fi
-if [ -z "$TOOLCHAIN_NAME" ]; then
-    TOOLCHAIN_NAME=cdm
-fi
-if [ -z "$NO_ASK" ]; then
-    NO_ASK=0
-fi
-
+triple=$(get_triple)
 check_tools rustup curl
-check_install_dir "$INSTALL_DIR"
-check_rustup_toolchain "$TOOLCHAIN_NAME"
 
-if [ "$NO_ASK" -eq 0 ]; then
-    prompt_input VERSION true "Enter release name ($VERSION):"
-    prompt_input INSTALL_DIR check_install_dir "Enter install directory ($INSTALL_DIR):"
-    prompt_input TOOLCHAIN_NAME check_rustup_toolchain "Enter toolchain name ($TOOLCHAIN_NAME):"
+if [ -z "$no_ask" ]; then
+    no_ask=0
+fi
+if [ -z "$install_dir" ]; then
+    install_dir=$(get_default_install_dir $no_ask)
+fi
+if [ -z "$version" ]; then
+    version=cdm-nightly
+fi
+if [ -z "$toolchain_name" ]; then
+    toolchain_name=cdm
+fi
+
+if [ "$no_ask" -eq 0 ]; then
+    prompt_input version true "Enter release name ($version):"
+    prompt_input install_dir check_install_dir "Enter install directory ($install_dir):"
+    prompt_input toolchain_name check_rustup_toolchain "Enter toolchain name ($toolchain_name):"
     echo
 fi
 
-echo "Host platform:            $TRIPLE"
-echo "Toolchain version:        $VERSION"
-echo "Install directory:        $INSTALL_DIR"
-echo "Rustup toolchain name:    $TOOLCHAIN_NAME"
+check_install_dir "$install_dir"
+check_rustup_toolchain "$toolchain_name"
+
+echo "Host platform:            $triple"
+echo "Toolchain version:        $version"
+echo "Install directory:        $install_dir"
+echo "Rustup toolchain name:    $toolchain_name"
 echo
-if [ "$NO_ASK" -eq 0 ] && ! confirm_install "Proceed with installation? (Y/n)"; then
+if [ "$no_ask" -eq 0 ] && ! confirm_install "Proceed with installation? (Y/n)"; then
     echo "Installation canceled."
     exit 0
 fi
 
-DOWNLOAD_DIR=$(mktemp -d /tmp/rust-cdm-download.XXXXXX)
+download_dir=$(mktemp -d "${TMPDIR:-/tmp}/rust-cdm-download.XXXXXX")
 
-SUCCESS=0
+install_success=0
 cleanup() {
-    rm -rf "$DOWNLOAD_DIR"
-    if [ "$SUCCESS" -eq 0 ]; then
-        echo "Installation failed. Removing directory $INSTALL_DIR" >&2
-        rm -rf "$INSTALL_DIR"
+    rm -rf "$download_dir"
+    if [ "$install_success" -eq 0 ]; then
+        echo "Installation failed. Removing directory $install_dir" >&2
+        rm -rf "$install_dir"
     fi
 }
 trap cleanup EXIT
 
-DOWNLOAD_URL="https://github.com/ylab-nsu/cdm16-rust/releases/download"
+download_url="https://github.com/ylab-nsu/cdm16-rust/releases/download"
 echo "Downloading rustc..."
-curl --proto "=https" -#fLo "$DOWNLOAD_DIR/rustc.tar.gz" "$DOWNLOAD_URL/$VERSION/rustc-nightly-$TRIPLE.tar.gz"
+curl --proto "=https" -#fLo "$download_dir/rustc.tar.gz" "$download_url/$version/rustc-nightly-$triple.tar.gz"
 echo "Downloading rust-std..."
-curl --proto "=https" -#fLo "$DOWNLOAD_DIR/rust-std.tar.gz" "$DOWNLOAD_URL/$VERSION/rust-std-nightly-$TRIPLE.tar.gz"
+curl --proto "=https" -#fLo "$download_dir/rust-std.tar.gz" "$download_url/$version/rust-std-nightly-$triple.tar.gz"
 echo "Downloading rust-src..."
-curl --proto "=https" -#fLo "$DOWNLOAD_DIR/rust-src.tar.gz" "$DOWNLOAD_URL/$VERSION/rust-src-nightly.tar.gz"
+curl --proto "=https" -#fLo "$download_dir/rust-src.tar.gz" "$download_url/$version/rust-src-nightly.tar.gz"
 
-mkdir -p "$INSTALL_DIR"
+mkdir -p "$install_dir"
 
-COMPONENTS="rustc rust-std rust-src"
-for comp in $COMPONENTS; do
-    mkdir -p "$DOWNLOAD_DIR/$comp"
+components="rustc rust-std rust-src"
+for comp in $components; do
+    mkdir -p "$download_dir/$comp"
     echo "Extracting $comp..."
-    tar -xzf "$DOWNLOAD_DIR/$comp.tar.gz" -C "$DOWNLOAD_DIR/$comp" --strip-components=1
+    tar -xzf "$download_dir/$comp.tar.gz" -C "$download_dir/$comp" --strip-components=1
     echo "Installing $comp..."
-    "$DOWNLOAD_DIR/$comp/install.sh" --prefix="$INSTALL_DIR"
+    "$download_dir/$comp/install.sh" --prefix="$install_dir"
 done
 
 echo "Linking CDM-16 toolchain..."
-rustup toolchain link "$TOOLCHAIN_NAME" "$INSTALL_DIR"
+rustup toolchain link "$toolchain_name" "$install_dir"
 
 echo "Installing nightly toolchain..."
 rustup toolchain install nightly
 
 echo "Installation completed successfully."
-SUCCESS=1
+install_success=1
