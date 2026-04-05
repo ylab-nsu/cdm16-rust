@@ -4,10 +4,12 @@ set -e
 
 print_help() {
     echo "CDM-16 Rust toolchain install script"
-    echo "Usage: $0 [-d DIRECTORY] [-v RELEASE] [-n NAME]"
+    echo "Usage: $0 [-d DIRECTORY] [-v RELEASE] [-n NAME] [-y] [-h]"
     echo " -d DIRECTORY : The directory to install the Rust toolchain to. Default: ~/.rust-cdm"
     echo " -v VERSION   : The name of the release to download. Default: cdm-nightly"
     echo " -n NAME      : The name of the toolchain to use in rustup. Default: cdm"
+    echo " -y           : Don't ask for confirmation."
+    echo " -h           : Display this help message."
 }
 
 get_triple() {
@@ -112,12 +114,14 @@ INSTALL_DIR=
 VERSION=
 TRIPLE=
 TOOLCHAIN_NAME=
+NO_CONFIRM=0
 
-while getopts "d:v:n:h" opt; do
+while getopts "d:v:n:yh" opt; do
     case $opt in
         d) INSTALL_DIR="$OPTARG" ;;
         v) VERSION="$OPTARG" ;;
         n) TOOLCHAIN_NAME="$OPTARG" ;;
+        y) NO_CONFIRM=1 ;;
         h)
             print_help
             exit 0
@@ -149,7 +153,7 @@ echo "Toolchain version:        $VERSION"
 echo "Install directory:        $INSTALL_DIR"
 echo "Rustup toolchain name:    $TOOLCHAIN_NAME"
 echo
-if ! confirm_install "Proceed with the installation? (y/n)"; then
+if [ "$NO_CONFIRM" -ne 1 ] && ! confirm_install "Proceed with the installation? (y/n)"; then
     echo "Install canceled."
     exit 0
 fi
