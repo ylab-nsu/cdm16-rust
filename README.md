@@ -36,15 +36,15 @@ Download the latest `rustc`, `rust-std` and `rust-src` packages for your platfor
 
 ```sh
 # Linux
-curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rustc-nightly-x86_64-unknown-linux-gnu.tar.gz
-curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-std-nightly-x86_64-unknown-linux-gnu.tar.gz
-curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-src-nightly.tar.gz
+curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rustc-nightly-x86_64-unknown-linux-gnu.tar.gz
+curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-std-nightly-x86_64-unknown-linux-gnu.tar.gz
+curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-src-nightly.tar.gz
 ```
 ```sh
 # macOS
-curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rustc-nightly-aarch64-apple-darwin.tar.gz
-curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-std-nightly-aarch64-apple-darwin.tar.gz
-curl -OL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-src-nightly.tar.gz
+curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rustc-nightly-aarch64-apple-darwin.tar.gz
+curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-std-nightly-aarch64-apple-darwin.tar.gz
+curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-src-nightly.tar.gz
 ```
 
 Extract the packages.
