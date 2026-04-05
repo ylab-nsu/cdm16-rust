@@ -180,6 +180,11 @@ check_tools rustup curl
 if [ -z "$no_ask" ]; then
     no_ask=0
 fi
+if [ "$no_ask" -eq 0 ] && ! true 2>/dev/null >/dev/tty; then
+    echo "Cannot run in interactive mode without a controlling terminal." >&2
+    exit 1
+fi
+
 if [ -z "$install_dir" ]; then
     install_dir=$(get_default_install_dir $no_ask)
 fi
