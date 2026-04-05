@@ -15,7 +15,7 @@ For a complete usage example, check out [`cdm-paint-rs`].
 
 [![Nightly Release](https://img.shields.io/github/v/release/ylab-nsu/cdm16-rust?include_prereleases&filter=cdm-nightly)](https://github.com/ylab-nsu/cdm16-rust/releases/cdm-nightly)
 
-Requirements: `rustup`.
+Requirements: `rustup`, `bash`.
 
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/ylab-nsu/cdm16-rust/cdm/cdm_install.sh | sh

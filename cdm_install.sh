@@ -175,7 +175,7 @@ while getopts "d:v:t:sh" opt; do
 done
 
 triple=$(get_triple)
-check_tools rustup curl
+check_tools rustup curl bash
 
 if [ -z "$no_ask" ]; then
     no_ask=0
