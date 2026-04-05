@@ -15,11 +15,14 @@ For a complete usage example, check out [`cdm-paint-rs`].
 
 [![Nightly Release](https://img.shields.io/github/v/release/ylab-nsu/cdm16-rust?include_prereleases&filter=cdm-nightly)](https://github.com/ylab-nsu/cdm16-rust/releases/cdm-nightly)
 
-Requirements: `rustup`, `bash`.
-
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/ylab-nsu/cdm16-rust/cdm/cdm_install.sh | sh
 ```
+
+Requirements: 
+- Linux x86\_64 or macOS AArch64
+- `rustup`
+- `bash`
 
 <details>
 <summary>I don't like curl | sh</summary>
@@ -29,7 +32,7 @@ Install the nightly toolchain with `rustup`.
 rustup toolchain install nightly
 ```
 
-Download the latest `rustc`, `rust-std` and `rust-src` packages for your platform (currently Linux x86\_64 and macOS AArch64 are supported).
+Download the latest `rustc`, `rust-std` and `rust-src` packages for your platform.
 
 ```sh
 # Linux
