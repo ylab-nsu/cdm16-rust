@@ -1,4 +1,6 @@
-# Rust for CDM-16
+# Rust for CDM-16 
+
+[![Nightly Release](https://img.shields.io/github/v/release/ylab-nsu/cdm16-rust?include_prereleases&filter=cdm-nightly)](https://github.com/ylab-nsu/cdm16-rust/releases/cdm-nightly)
 
 This is a fork of the Rust compiler and toolchain with experimental support for targeting the [CDM-16 educational processor]. It is based on the [Neo CDM-16 LLVM backend].
 
@@ -12,8 +14,6 @@ For a complete usage example, check out [`cdm-paint-rs`].
 [`cdm-paint-rs`]: https://github.com/aelsi2/cdm-paint-rs
 
 ## Installation
-
-[![Nightly Release](https://img.shields.io/github/v/release/ylab-nsu/cdm16-rust?include_prereleases&filter=cdm-nightly)](https://github.com/ylab-nsu/cdm16-rust/releases/cdm-nightly)
 
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/ylab-nsu/cdm16-rust/cdm/cdm_install.sh | sh
