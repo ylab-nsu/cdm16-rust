@@ -4,11 +4,11 @@ set -e
 
 print_help() {
     echo "CDM-16 Rust toolchain install script"
-    echo "Usage: $0 [-d DIRECTORY] [-v RELEASE] [-t NAME] [-y] [-h]"
+    echo "Usage: $0 [-d DIRECTORY] [-v RELEASE] [-t NAME] [-s] [-h]"
     echo " -d DIRECTORY : The directory to install the Rust toolchain to. Default: ~/.rust-cdm"
     echo " -v VERSION   : The name of the release to download. Default: cdm-nightly"
     echo " -t NAME      : The name of the toolchain to use in rustup. Default: cdm"
-    echo " -y           : Don't ask for confirmation."
+    echo " -s           : Script mode. Don't ask interactive questions."
     echo " -h           : Display this help message."
 }
 
@@ -28,10 +28,27 @@ get_triple() {
     esac
 }
 
+expand_tilde() {
+    case "$1" in
+        "~/"* | "~")
+            if [ -z "$HOME" ]; then
+                echo "Can't expand '~' because \$HOME is not set." >&2
+                echo "Please, re-log into the system or specify the full path explicitly" >&2
+                return 1
+            fi
+            home_path=$1; home_path=${home_path#'~/'}; home_path=${home_path#'~'}
+            echo "$HOME/$home_path"
+            ;;
+        *)
+            echo $1
+            ;;
+    esac
+}
+
 get_default_install_dir() {
     if [ -z "$HOME" ]; then
         echo "Can't determine the default install directory because \$HOME is not set." >&2
-        echo "Please, re-log into the system or specify the install directory explicitly with -d" >&2
+        echo "Please, re-log into the system or specify the install directory explicitly" >&2
         return 1
     fi
     echo "$HOME/.rust-cdm"
@@ -54,12 +71,12 @@ check_tools() {
 check_install_dir() {
     if [ -f "$1" ]; then
         echo "Install directory is a file: $1" >&2
-        echo "Please, specify a different install directory with -d or remove the file." >&2
+        echo "Please, specify a different install directory or remove the file." >&2
         return 1
     fi
     if [ -d "$1" ] && [ -n "$(ls -A "$1")" ]; then
         echo "Install directory is not empty: $1" >&2
-        echo "Please, specify a different install directory with -d or remove the contents of the directory." >&2
+        echo "Please, specify a different install directory or remove the contents of the directory." >&2
         return 1
     fi
 }
@@ -68,25 +85,40 @@ check_rustup_toolchain() {
     case "$1" in
       . | ..)
           echo "Toolchain name must not be '.' or '..'" >&2
-          echo "Please specify a different toolchain name with -t" >&2
+          echo "Please specify a different toolchain name" >&2
           return 1
           ;;
       */* | *\\*)
           echo "Toolchain name must not contain '/' or '\\': $1" >&2
-          echo "Please specify a different toolchain name with -t" >&2
+          echo "Please specify a different toolchain name" >&2
           return 1
           ;;
       stable* | beta* | nightly* | none)
           echo "Toolchain name is reserved in Rustup: $1" >&2
-          echo "Please specify a different toolchain name with -t" >&2
+          echo "Please specify a different toolchain name" >&2
           return 1
           ;;
     esac
     for toolchain in $(rustup toolchain list | awk '{print $1}'); do
         if [ "$toolchain" = "$1" ]; then
             echo "Rustup toolchain already exists: $toolchain" >&2
-            echo "Please specify a different toolchain name with -t" >&2
+            echo "Please specify a different toolchain name" >&2
             return 1
+        fi
+    done
+}
+
+prompt_input() {
+    while true; do
+        printf "%s " "$3"
+        read resp </dev/tty
+        resp=$(expand_tilde "$resp")
+        if [ -z "$resp" ]; then
+            eval "resp=\"\$$1\""
+        fi
+        if $2 $resp; then
+            eval "$1=\"\$resp\""
+            return 0
         fi
     done
 }
@@ -96,13 +128,13 @@ confirm_install() {
         printf "%s " "$1"
         read resp </dev/tty
         case "$resp" in
-            [Yy]* )
+            [Yy]* | '')
                 return 0
                 ;;
-            [Nn]* )
+            [Nn]*)
                 return 1
                 ;;
-            * )
+            *)
                 echo "Please answer yes or no."
                 ;;
         esac
@@ -114,14 +146,14 @@ INSTALL_DIR=
 VERSION=
 TRIPLE=
 TOOLCHAIN_NAME=
-NO_CONFIRM=0
+NO_ASK=
 
-while getopts "d:v:t:yh" opt; do
+while getopts "d:v:t:sh" opt; do
     case $opt in
         d) INSTALL_DIR="$OPTARG" ;;
         v) VERSION="$OPTARG" ;;
         t) TOOLCHAIN_NAME="$OPTARG" ;;
-        y) NO_CONFIRM=1 ;;
+        s) NO_ASK=1 ;;
         h)
             print_help
             exit 0
@@ -133,6 +165,7 @@ while getopts "d:v:t:yh" opt; do
     esac
 done
 
+TRIPLE=$(get_triple)
 if [ -z "$INSTALL_DIR" ]; then
     INSTALL_DIR=$(get_default_install_dir)
 fi
@@ -142,19 +175,28 @@ fi
 if [ -z "$TOOLCHAIN_NAME" ]; then
     TOOLCHAIN_NAME=cdm
 fi
-TRIPLE=$(get_triple)
+if [ -z "$NO_ASK" ]; then
+    NO_ASK=0
+fi
 
 check_tools rustup curl
 check_install_dir "$INSTALL_DIR"
 check_rustup_toolchain "$TOOLCHAIN_NAME"
+
+if [ "$NO_ASK" -eq 0 ]; then
+    prompt_input VERSION true "Enter release name ($VERSION):"
+    prompt_input INSTALL_DIR check_install_dir "Enter install directory ($INSTALL_DIR):"
+    prompt_input TOOLCHAIN_NAME check_rustup_toolchain "Enter toolchain name ($TOOLCHAIN_NAME):"
+    echo
+fi
 
 echo "Host platform:            $TRIPLE"
 echo "Toolchain version:        $VERSION"
 echo "Install directory:        $INSTALL_DIR"
 echo "Rustup toolchain name:    $TOOLCHAIN_NAME"
 echo
-if [ "$NO_CONFIRM" -ne 1 ] && ! confirm_install "Proceed with the installation? (y/n)"; then
-    echo "Install canceled."
+if [ "$NO_ASK" -eq 0 ] && ! confirm_install "Proceed with installation? (Y/n)"; then
+    echo "Installation canceled."
     exit 0
 fi
 
@@ -163,7 +205,7 @@ DOWNLOAD_DIR=$(mktemp -d /tmp/rust-cdm-download.XXXXXX)
 SUCCESS=0
 cleanup() {
     rm -rf "$DOWNLOAD_DIR"
-    if [ "$SUCCESS" -ne 1 ]; then
+    if [ "$SUCCESS" -eq 0 ]; then
         echo "Installation failed. Removing directory $INSTALL_DIR" >&2
         rm -rf "$INSTALL_DIR"
     fi
