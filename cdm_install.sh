@@ -229,11 +229,11 @@ trap cleanup EXIT
 
 download_url="https://github.com/ylab-nsu/cdm16-rust/releases/download"
 echo "Downloading rustc..."
-curl --proto "=https" -#fLo "$download_dir/rustc.tar.gz" "$download_url/$version/rustc-nightly-$triple.tar.gz"
+curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rustc.tar.gz" "$download_url/$version/rustc-nightly-$triple.tar.gz"
 echo "Downloading rust-std..."
-curl --proto "=https" -#fLo "$download_dir/rust-std.tar.gz" "$download_url/$version/rust-std-nightly-$triple.tar.gz"
+curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rust-std.tar.gz" "$download_url/$version/rust-std-nightly-$triple.tar.gz"
 echo "Downloading rust-src..."
-curl --proto "=https" -#fLo "$download_dir/rust-src.tar.gz" "$download_url/$version/rust-src-nightly.tar.gz"
+curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rust-src.tar.gz" "$download_url/$version/rust-src-nightly.tar.gz"
 
 mkdir -p "$install_dir"
 
