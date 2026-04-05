@@ -16,7 +16,7 @@ For a complete usage example, check out [`cdm-paint-rs`].
 ## Installation
 
 ```
-curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/ylab-nsu/cdm16-rust/cdm/cdm_install.sh | sh
+curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/ylab-nsu/cdm16-rust/cdm/cdm-install.sh | sh
 ```
 
 Requirements: 
