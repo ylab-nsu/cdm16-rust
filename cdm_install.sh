@@ -79,10 +79,13 @@ check_install_dir() {
         echo "Please, specify a different install directory or remove the file." >&2
         return 1
     fi
-    if [ -d "$1" ] && [ -n "$(ls -A "$1")" ]; then
-        echo "Install directory is not empty: $1" >&2
-        echo "Please, specify a different install directory or remove the contents of the directory." >&2
-        return 1
+    if [ -d "$1" ]; then
+        ls_output=$(ls -A "$1")
+        if [ -n "$ls_output" ]; then
+            echo "Install directory is not empty: $1" >&2
+            echo "Please, specify a different install directory or remove the contents of the directory." >&2
+            return 1
+        fi
     fi
 }
 
@@ -104,7 +107,8 @@ check_rustup_toolchain() {
           return 1
           ;;
     esac
-    for toolchain in $(rustup toolchain list | awk '{print $1}'); do
+    toolchains=$(rustup toolchain list)
+    for toolchain in $(echo "$toolchains" | awk '{print $1}'); do
         if [ "$toolchain" = "$1" ]; then
             echo "Rustup toolchain already exists: $toolchain" >&2
             echo "Please specify a different toolchain name" >&2
