@@ -132,7 +132,7 @@ prompt_input() {
     done
 }
 
-confirm_install() {
+prompt_confirm() {
     while true; do
         printf "%s " "$1"
         read resp </dev/tty
@@ -149,7 +149,6 @@ confirm_install() {
         esac
     done
 }
-
 
 install_dir=
 version=
@@ -173,6 +172,13 @@ while getopts "d:v:t:sh" opt; do
             ;;
     esac
 done
+
+shift $((OPTIND - 1))
+if [ $# -gt 0 ]; then
+    echo "$0: illegal argument: $1" >&2
+    print_help >&2
+    exit 1
+fi
 
 triple=$(get_triple)
 check_tools rustup curl bash
@@ -210,7 +216,7 @@ echo "Toolchain version:        $version"
 echo "Install directory:        $install_dir"
 echo "Rustup toolchain name:    $toolchain_name"
 echo
-if [ "$no_ask" -eq 0 ] && ! confirm_install "Proceed with installation? (Y/n)"; then
+if [ "$no_ask" -eq 0 ] && ! prompt_confirm "Proceed with installation? (Y/n)"; then
     echo "Installation canceled."
     exit 0
 fi
@@ -236,14 +242,15 @@ echo "Downloading rust-src..."
 curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rust-src.tar.gz" "$download_url/$version/rust-src-nightly.tar.gz"
 
 mkdir -p "$install_dir"
+install_dir_abs=$(cd "$install_dir" && pwd -P)
 
 components="rustc rust-std rust-src"
 for comp in $components; do
     mkdir -p "$download_dir/$comp"
     echo "Extracting $comp..."
     tar -xzf "$download_dir/$comp.tar.gz" -C "$download_dir/$comp" --strip-components=1
-    echo "Installing $comp..."
-    "$download_dir/$comp/install.sh" --prefix="$install_dir"
+    echo "Copying $comp..."
+    "$download_dir/$comp/install.sh" --prefix="$install_dir" >/dev/null 2>/dev/null
 done
 
 echo "Linking CDM-16 toolchain..."
@@ -251,6 +258,110 @@ rustup toolchain link "$toolchain_name" "$install_dir"
 
 echo "Installing nightly toolchain..."
 rustup toolchain install nightly
+
+toolchain_info="$install_dir/.cdm-toolchain"
+uninstall_script="$install_dir/cdm-uninstall.sh"
+
+echo "Writing toolchain info..."
+cat >"$toolchain_info" <<EOF
+version="$version"
+toolchain_name="$toolchain_name"
+EOF
+
+echo "Writing uninstall script..."
+cat >"$uninstall_script" <<EOF
+#!/bin/sh
+
+set -e
+
+print_help() {
+    echo "CDM-16 Rust toolchain uninstall script"
+    echo "Usage: \$0 [-s] [-h]"
+    echo " -s : Script mode. Don't ask interactive questions."
+    echo " -h : Display this help message."
+}
+
+prompt_confirm() {
+    while true; do
+        printf "%s " "\$1"
+        read resp </dev/tty
+        case "\$resp" in
+            [Yy]* | '')
+                return 0
+                ;;
+            [Nn]*)
+                return 1
+                ;;
+            *)
+                echo "Please answer yes or no."
+                ;;
+        esac
+    done
+}
+
+install_dir="$install_dir_abs"
+toolchain_name="$toolchain_name"
+no_ask=0
+
+while getopts "sh" opt; do
+    case \$opt in
+        s) no_ask=1 ;;
+        h)
+            print_help
+            exit 0
+            ;;
+        \?)
+            print_help >&2
+            exit 1
+            ;;
+    esac
+done
+
+shift \$((OPTIND - 1))
+if [ \$# -gt 0 ]; then
+    echo "\$0: illegal argument: \$1" >&2
+    print_help >&2
+    exit 1
+fi
+
+if [ "\$no_ask" -eq 0 ] && ! true 2>/dev/null >/dev/tty; then
+    echo "Cannot run in interactive mode without a controlling terminal." >&2
+    exit 1
+fi
+
+echo "Toolchain \$toolchain_name will be unregistered."
+echo "Directory \$install_dir will be DELETED."
+echo
+if [ "\$no_ask" -eq 0 ] && ! prompt_confirm "Proceed with uninstallation? (Y/n)"; then
+    echo "Uninstallation canceled."
+    exit 0
+fi
+
+uninstall_success=0
+on_exit(){
+    if [ "\$uninstall_success" -eq 0 ]; then
+        echo "Uninstallation failed."
+    fi
+}
+trap on_exit EXIT
+
+echo "Unregistering rustup toolchain..."
+if command -v rustup >/dev/null; then
+    rustup toolchain uninstall "\$toolchain_name"
+else
+    echo "Warning: the toolchain has not been unregistered because rustup is unavailable."
+fi
+
+echo "Removing toolchain files..."
+cd /
+rm -rf "\$install_dir"
+
+echo "Uninstallation completed successfully."
+uninstall_success=1
+EOF
+chmod a+x "$uninstall_script"
+
+echo "Uninstall script written to $uninstall_script"
 
 echo "Installation completed successfully."
 install_success=1
