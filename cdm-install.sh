@@ -287,24 +287,17 @@ cleanup() {
 trap cleanup EXIT
 
 download_url="https://github.com/ylab-nsu/cdm16-rust/releases/download"
-echo "Downloading rustc..."
-curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rustc.tar.gz" "$download_url/$version/rustc-nightly-$triple.tar.gz"
-echo "Downloading rust-std..."
-curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rust-std.tar.gz" "$download_url/$version/rust-std-nightly-$triple.tar.gz"
-echo "Downloading rust-src..."
-curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rust-src.tar.gz" "$download_url/$version/rust-src-nightly.tar.gz"
+echo "Downloading rust..."
+curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rust.tar.gz" "$download_url/$version/rust-nightly-$triple.tar.gz"
 
 mkdir -p "$install_dir"
 install_dir_abs=$(cd "$install_dir" && pwd -P)
 
-components="rustc rust-std rust-src"
-for comp in $components; do
-    mkdir -p "$download_dir/$comp"
-    echo "Extracting $comp..."
-    tar -xzf "$download_dir/$comp.tar.gz" -C "$download_dir/$comp" --strip-components=1
-    echo "Copying $comp..."
-    "$download_dir/$comp/install.sh" --prefix="$install_dir" >/dev/null 2>/dev/null
-done
+mkdir -p "$download_dir/rust"
+echo "Extracting rust..."
+tar -xzf "$download_dir/rust.tar.gz" -C "$download_dir/rust" --strip-components=1
+echo "Copying rust..."
+"$download_dir/$comp/install.sh" --prefix="$install_dir" >/dev/null 2>/dev/null
 
 echo "Linking CDM-16 toolchain..."
 rustup toolchain link "$toolchain_name" "$install_dir"

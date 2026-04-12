@@ -5,6 +5,8 @@ build-stage = 2
 docs = false
 compiler-docs = false
 submodules = false
+extended = true
+tools = [ "src", "cargo", "analysis" ]
 
 [rust]
 channel = "nightly"

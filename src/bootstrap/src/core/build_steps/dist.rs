@@ -1562,6 +1562,9 @@ impl Step for Extended {
         tarballs.push(builder.ensure(Rustc { compiler: builder.compiler(stage, target) }));
         tarballs.push(builder.ensure(Std { compiler, target }).expect("missing std"));
 
+        // rust-src is needed for the CDM-16 toolchain
+        tarballs.push(builder.ensure(Src));
+
         if target.is_windows_gnu() {
             tarballs.push(builder.ensure(Mingw { host: target }).expect("missing mingw"));
         }
