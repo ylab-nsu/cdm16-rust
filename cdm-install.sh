@@ -282,28 +282,27 @@ cleanup() {
     if [ "$install_success" -eq 0 ]; then
         echo "Installation failed. Removing directory $install_dir" >&2
         rm -rf "$install_dir"
+        echo "Unregistering toolchain $toolchain_name" >&2
+        rustup toolchain uninstall "$toolchain_name"
     fi
 }
 trap cleanup EXIT
 
 download_url="https://github.com/ylab-nsu/cdm16-rust/releases/download"
-echo "Downloading rust..."
+echo "Downloading Rust..."
 curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rust.tar.gz" "$download_url/$version/rust-nightly-$triple.tar.gz"
 
 mkdir -p "$install_dir"
 install_dir_abs=$(cd "$install_dir" && pwd -P)
 
 mkdir -p "$download_dir/rust"
-echo "Extracting rust..."
+echo "Extracting Rust..."
 tar -xzf "$download_dir/rust.tar.gz" -C "$download_dir/rust" --strip-components=1
-echo "Copying rust..."
-"$download_dir/$comp/install.sh" --prefix="$install_dir" >/dev/null 2>/dev/null
+echo "Running standalone Rust installer..."
+"$download_dir/rust/install.sh" --prefix="$install_dir" >/dev/null
 
 echo "Linking CDM-16 toolchain..."
 rustup toolchain link "$toolchain_name" "$install_dir"
-
-echo "Installing nightly toolchain..."
-rustup toolchain install nightly
 
 toolchain_info="$install_dir/.cdm-rust"
 uninstall_script="$install_dir/cdm-uninstall.sh"
