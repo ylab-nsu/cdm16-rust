@@ -37,12 +37,6 @@ jobs:
         with:
           archive: false
           path: ./build/dist/rust-std-nightly-*.tar.gz
-      - name: Upload cargo
-        if: inputs.upload
-        uses: actions/upload-artifact@v7
-        with:
-          archive: false
-          path: ./build/dist/cargo-nightly-*.tar.gz
       - name: Upload rust-src
         if: inputs.upload && (runner.os == 'Linux')
         uses: actions/upload-artifact@v7

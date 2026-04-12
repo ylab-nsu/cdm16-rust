@@ -27,21 +27,24 @@ Requirements:
 <details>
 <summary>I don't like curl | sh</summary>
 
-Download the latest `rustc`, `rust-std`, `rust-src` and `cargo` packages for your platform.
+Install the nightly toolchain with `rustup`.
+```sh
+rustup toolchain install nightly
+```
+
+Download the latest `rustc`, `rust-std` and `rust-src` packages for your platform.
 
 ```sh
 # Linux
 curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rustc-nightly-x86_64-unknown-linux-gnu.tar.gz
 curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-std-nightly-x86_64-unknown-linux-gnu.tar.gz
 curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-src-nightly.tar.gz
-curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz
 ```
 ```sh
 # macOS
 curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rustc-nightly-aarch64-apple-darwin.tar.gz
 curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-std-nightly-aarch64-apple-darwin.tar.gz
 curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/rust-src-nightly.tar.gz
-curl --proto '=https' --tlsv1.2 -fOL https://github.com/ylab-nsu/cdm16-rust/releases/download/cdm-nightly/cargo-nightly-aarch64-apple-darwin.tar.gz
 ```
 
 Extract the packages.
@@ -50,14 +53,12 @@ Extract the packages.
 tar -xzf rustc-nightly-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf rust-std-nightly-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf rust-src-nightly.tar.gz
-tar -xzf cargo-nightly-x86_64-unknown-linux-gnu.tar.gz
 ```
 ```sh
 # macOS
 tar -xzf rustc-nightly-aarch64-apple-darwin.tar.gz
 tar -xzf rust-std-nightly-aarch64-apple-darwin.tar.gz
 tar -xzf rust-src-nightly.tar.gz
-tar -xzf cargo-nightly-aarch64-apple-darwin.tar.gz
 ```
 
 Create a directory for the CDM-16 Rust toolchain, for example `~/.rust-cdm`.
@@ -71,14 +72,12 @@ Run the `install.sh` script from each of the extracted directories with `--prefi
 ./rustc-nightly-x86_64-unknown-linux-gnu/install.sh --prefix=~/.rust-cdm
 ./rust-std-nightly-x86_64-unknown-linux-gnu/install.sh --prefix=~/.rust-cdm
 ./rust-src-nightly/install.sh --prefix=~/.rust-cdm
-./cargo-nightly-x86_64-unknown-linux-gnu/install.sh --prefix=~/.rust-cdm
 ```
 ```sh
 # macOS
 ./rustc-nightly-aarch64-apple-darwin/install.sh --prefix=~/.rust-cdm
 ./rust-std-nightly-aarch64-apple-darwin/install.sh --prefix=~/.rust-cdm
 ./rust-src-nightly/install.sh --prefix=~/.rust-cdm
-./cargo-nightly-aarch64-apple-darwin/install.sh --prefix=~/.rust-cdm
 ```
 
 Register the installed toolchain in `rustup`.

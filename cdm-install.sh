@@ -293,13 +293,11 @@ echo "Downloading rust-std..."
 curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rust-std.tar.gz" "$download_url/$version/rust-std-nightly-$triple.tar.gz"
 echo "Downloading rust-src..."
 curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/rust-src.tar.gz" "$download_url/$version/rust-src-nightly.tar.gz"
-echo "Downloading cargo..."
-curl --proto "=https" --tlsv1.2 -#fLo "$download_dir/cargo.tar.gz" "$download_url/$version/cargo-nightly-$triple.tar.gz"
 
 mkdir -p "$install_dir"
 install_dir_abs=$(cd "$install_dir" && pwd -P)
 
-components="rustc rust-std rust-src cargo"
+components="rustc rust-std rust-src"
 for comp in $components; do
     mkdir -p "$download_dir/$comp"
     echo "Extracting $comp..."
@@ -310,6 +308,9 @@ done
 
 echo "Linking CDM-16 toolchain..."
 rustup toolchain link "$toolchain_name" "$install_dir"
+
+echo "Installing nightly toolchain..."
+rustup toolchain install nightly
 
 toolchain_info="$install_dir/.cdm-rust"
 uninstall_script="$install_dir/cdm-uninstall.sh"
