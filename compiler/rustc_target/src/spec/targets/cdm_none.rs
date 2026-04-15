@@ -5,7 +5,7 @@ use crate::spec::{
 
 pub(crate) fn target() -> Target {
     Target {
-        data_layout: "e-S16-p:16:16-i8:8-i16:16-i32:16-i64:16-f16:16-f32:16-f64:16-f128:16-m:C-n16"
+        data_layout: "e-m:e-p:16:16-i8:8-i16:16-i32:16-i64:16-f16:16-f32:16-f64:16-f128:16-n16-S16"
             .into(),
         llvm_target: "cdm-unknown-unknown-unknown".into(),
         metadata: TargetMetadata {
