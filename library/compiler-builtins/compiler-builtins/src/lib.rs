@@ -85,7 +85,7 @@ pub mod x86;
 #[cfg(target_arch = "x86_64")]
 pub mod x86_64;
 
-#[cfg(target_arch = "cdm")]
+#[cfg(all(target_arch = "cdm", not(feature = "no-asm")))]
 pub mod cdm;
 
 pub mod probestack;

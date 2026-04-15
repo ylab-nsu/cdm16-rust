@@ -114,7 +114,7 @@ macro_rules! smod {
     }
 }
 
-#[cfg(not(target_arch = "avr"))]
+#[cfg(all(not(target_arch = "avr"), not(target_arch = "cdm")))]
 sdivmod!(
     __udivmodsi4,
     __divmodsi4,
@@ -158,6 +158,7 @@ intrinsics! {
 }
 
 // The `#[arm_aeabi_alias = __aeabi_idiv]` attribute cannot be made to work with `intrinsics!` in macros
+#[cfg(not(target_arch = "cdm"))]
 intrinsics! {
     #[maybe_use_optimized_c_shim]
     #[arm_aeabi_alias = __aeabi_idiv]
@@ -181,6 +182,7 @@ intrinsics! {
         }
     }
 }
+#[cfg(not(target_arch = "cdm"))]
 smod!(__umodsi3, __modsi3, u32, i32, maybe_use_optimized_c_shim);
 
 sdivmod!(

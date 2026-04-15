@@ -3,6 +3,7 @@ pub(crate) use crate::int::specialized_div_rem::*;
 #[cfg(feature = "unstable-public-internals")]
 pub use crate::int::specialized_div_rem::*;
 
+#[cfg(not(target_arch = "cdm"))]
 intrinsics! {
     #[maybe_use_optimized_c_shim]
     #[arm_aeabi_alias = __aeabi_uidiv]
@@ -18,7 +19,7 @@ intrinsics! {
     }
 }
 
-#[cfg(not(target_arch = "avr"))]
+#[cfg(all(not(target_arch = "avr"), not(target_arch = "cdm")))]
 intrinsics! {
     #[maybe_use_optimized_c_shim]
     /// Returns `n / d` and sets `*rem = n % d`
