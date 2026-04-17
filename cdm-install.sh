@@ -78,7 +78,7 @@ check_existing() {
     if ! [ -f "$1/.cdm-rust" ]; then
         return 1
     fi
-    if ! [ -f "$1/cdm-uninstall.sh" ] || ! [ -x "$1/cdm-uninstall.sh" ]; then
+    if ! [ -f "$1/lib/uninstall.sh" ] || ! [ -x "$1/lib/uninstall.sh" ]; then
         return 1
     fi
     . "$1/.cdm-rust"
@@ -271,7 +271,7 @@ fi
 
 if [ "$update" -ne 0 ]; then
     echo "Uninstalling existing toolchain..."
-    "$install_dir/cdm-uninstall.sh" -s
+    "$install_dir/lib/uninstall.sh" -s
 fi
 
 download_dir=$(mktemp -d "${TMPDIR:-/tmp}/rust-cdm-download.XXXXXX")
@@ -305,7 +305,7 @@ echo "Linking CDM-16 toolchain..."
 rustup toolchain link "$toolchain_name" "$install_dir"
 
 toolchain_info="$install_dir/.cdm-rust"
-uninstall_script="$install_dir/cdm-uninstall.sh"
+uninstall_script="$install_dir/lib/uninstall.sh"
 
 echo "Writing toolchain info..."
 cat >"$toolchain_info" <<EOF
