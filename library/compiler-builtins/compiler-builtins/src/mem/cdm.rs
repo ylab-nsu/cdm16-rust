@@ -7,14 +7,14 @@ use core::ffi::c_int;
 pub unsafe fn copy_forward(dest: *mut u8, src: *const u8, count: usize) {
     asm!(
         "tst r2",
-        "ble 1f",
+        "bz 1f",
         "0:",
         "ldb r1, r3",
         "stb r0, r3",
         "inc r0",
         "inc r1",
         "dec r2",
-        "bgt 0b",
+        "bnz 0b",
         "1:",
         in("r0") dest,
         in("r1") src,
@@ -28,7 +28,7 @@ pub unsafe fn copy_forward(dest: *mut u8, src: *const u8, count: usize) {
 pub unsafe fn copy_backward(dest: *mut u8, src: *const u8, count: usize) {
     asm!(
         "tst r2",
-        "ble 1f",
+        "bz 1f",
         "add r0, r2, r0",
         "add r1, r2, r1",
         "dec r0",
@@ -39,7 +39,7 @@ pub unsafe fn copy_backward(dest: *mut u8, src: *const u8, count: usize) {
         "dec r0",
         "dec r1",
         "dec r2",
-        "bgt 0b",
+        "bnz 0b",
         "1:",
         in("r0") dest,
         in("r1") src,
@@ -53,12 +53,12 @@ pub unsafe fn copy_backward(dest: *mut u8, src: *const u8, count: usize) {
 pub unsafe fn set_bytes(s: *mut u8, c: u8, n: usize) {
     asm!(
         "tst r2",
-        "ble 1f",
+        "bz 1f",
         "0:",
         "stb r0, r1",
         "inc r0",
         "dec r2",
-        "bgt 0b",
+        "bnz 0b",
         "1:",
         in("r0") s,
         in("r1") c,
@@ -74,7 +74,7 @@ pub unsafe fn compare_bytes(s1: *const u8, s2: *const u8, n: usize) -> c_int {
     asm!(
         "ldi r4, 0",
         "tst r2",
-        "ble 1f",
+        "bz 1f",
         "0:",
         "ldb r0, r3",
         "ldb r1, r4",
@@ -83,7 +83,7 @@ pub unsafe fn compare_bytes(s1: *const u8, s2: *const u8, n: usize) -> c_int {
         "inc r0",
         "inc r1",
         "dec r2",
-        "bgt 0b",
+        "bnz 0b",
         "1:",
         in("r0") s1,
         in("r1") s2,
