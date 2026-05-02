@@ -2,9 +2,9 @@
 
 [![Nightly Release](https://img.shields.io/github/v/release/ylab-nsu/cdm16-rust?include_prereleases&filter=cdm-nightly)](https://github.com/ylab-nsu/cdm16-rust/releases/cdm-nightly)
 
-This is a fork of the Rust compiler and toolchain with experimental support for targeting the [CDM-16 educational processor]. It is based on the [Neo CDM-16 LLVM backend].
+This is a fork of the Rust compiler and toolchain with experimental [CDM-16 educational processor] target support. It is based on the [Neo CDM-16 LLVM backend].
 
-You would usually want to use the hardware support crates from [`cdm-rs`] in your projects. They provide startup logic and utilities for controlling processor interrupts.
+[`cdm-rs`] provides startup logic and various utilities for working with the processor.
 
 For a complete usage example, check out [`cdm-paint-rs`].
 
@@ -14,18 +14,19 @@ For a complete usage example, check out [`cdm-paint-rs`].
 [`cdm-paint-rs`]: https://github.com/aelsi2/cdm-paint-rs
 
 ## Installation
-
+Use the easy installer:
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/ylab-nsu/cdm16-rust/cdm/cdm-install.sh | sh
 ```
 
 Requirements: 
 - Linux x86\_64 or macOS AArch64
-- `rustup`
 - `bash`
+- `rustup`
 
 <details>
-<summary>Manual installation</summary>
+<summary><b>Manual installation</b></summary>
+<br>
 
 Download the latest `rust-nightly` package for your platform.
 
@@ -65,7 +66,7 @@ Run the `install.sh` script the extracted directory with `--prefix="PATH TO TOOL
 
 You can now use the binaries in `~/.rust-cdm/bin`.
 
-Optional: register the installed toolchain in `rustup` (to use the binaries like this: `cargo +cdm build`).
+Register the installed toolchain in `rustup`. You can skip this step if you don't want to use the rustup binary wrappers (e.g. `cargo +cdm build`).
 ```sh
 rustup toolchain link cdm ~/.rust-cdm
 ```
