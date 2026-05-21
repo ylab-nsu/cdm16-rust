@@ -10,9 +10,12 @@ cfg_if! {
     if #[cfg(any(target_arch = "aarch64", target_arch = "arm64ec"))] {
         // Aarch64 uses `int` rather than a pointer-sized value.
         pub type CmpResult = i32;
-    } else if #[cfg(target_arch = "avr")] {
+    } else if #[cfg(any(target_arch = "avr"))] {
         // AVR uses a single byte.
         pub type CmpResult = i8;
+    } else if #[cfg(any(target_arch = "cdm"))] {
+        // CDM uses an i16
+        pub type CmpResult = i16;
     } else {
         // In compiler-rt, LLP64 ABIs use `long long` and everything else uses `long`. In effect,
         // this means the return value is always pointer-sized.
