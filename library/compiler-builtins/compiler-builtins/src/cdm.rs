@@ -79,6 +79,83 @@ unsafe extern "custom" fn udiv_mod_32_impl() {
 
 intrinsics! {
     #[unsafe(naked)]
+    pub unsafe extern "custom" fn __adddi3() {
+        //! Adds two 64-bit integers
+        //! CDM-specific
+        core::arch::naked_asm!(
+            "push fp",
+            "ldsp fp",
+            "addsp -2",
+            "ssw r5, -2",
+            "lsw r5, 12",
+            "add r0, r5, r0",
+            "lsw r5, 14",
+            "addc r1, r5, r1",
+            "lsw r5, 16",
+            "addc r2, r5, r2",
+            "lsw r5, 18",
+            "addc r3, r5, r3",
+            "lsw r5, -2",
+            "stsp fp",
+            "pop fp",
+            "rts",
+        );
+    }
+
+    #[unsafe(naked)]
+    pub unsafe extern "custom" fn __subdi3() {
+        //! Subtracts the second 64-bit
+        //! integer from the first one
+        //! CDM-specific
+        core::arch::naked_asm!(
+            "push fp",
+            "ldsp fp",
+            "addsp -2",
+            "ssw r5, -2",
+            "lsw r5, 12",
+            "sub r0, r5, r0",
+            "lsw r5, 14",
+            "subc r1, r5, r1",
+            "lsw r5, 16",
+            "subc r2, r5, r2",
+            "lsw r5, 18",
+            "subc r3, r5, r3",
+            "lsw r5, -2",
+            "stsp fp",
+            "pop fp",
+            "rts",
+        );
+    }
+
+    #[unsafe(naked)]
+    pub unsafe extern "custom" fn __negdi2() {
+        //! Computes 2's complement of a 64-bit integer
+        //! CDM-specific
+        core::arch::naked_asm!(
+            "neg r0",
+            "bcs 0f",
+            "not r1",
+            "not r2",
+            "not r3",
+            "rts",
+            "0:",
+            "neg r1",
+            "bcs 1f",
+            "not r2",
+            "not r3",
+            "rts",
+            "1:",
+            "neg r2",
+            "bcs 2f",
+            "not r3",
+            "rts",
+            "2:",
+            "neg r3",
+            "rts",
+        );
+    }
+
+    #[unsafe(naked)]
     pub unsafe extern "custom" fn __mulhi3() {
         //! Computes the product of r0 and r1
         //! Places the result in r0
