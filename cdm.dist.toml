@@ -11,6 +11,7 @@ tools = [ "src", "cargo", "analysis" ]
 [rust]
 channel = "nightly"
 lld = true
+llvm-tools = true
 
 [llvm]
 download-ci-llvm = false
