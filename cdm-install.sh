@@ -241,6 +241,9 @@ fi
 check_tools rustup curl bash
 
 if [ "$no_ask" -eq 0 ]; then
+    echo "Welcome to the interactive CDM-16 Rust installer!"
+    echo "When prompted for input, press enter to use the default value."
+    echo
     prompt_input "Enter release name ($version):" version true
     prompt_input "Enter install directory ($install_dir):" install_dir check_install_dir update upd_toolchain_name
     toolchain_name="${toolchain_name:-$upd_toolchain_name}"
@@ -298,7 +301,7 @@ install_dir_abs=$(cd "$install_dir" && pwd -P)
 mkdir -p "$download_dir/rust"
 echo "Extracting Rust..."
 tar -xzf "$download_dir/rust.tar.gz" -C "$download_dir/rust" --strip-components=1
-echo "Running standalone Rust installer..."
+echo "Running standalone Rust installer... (this step may take several minutes)"
 "$download_dir/rust/install.sh" --prefix="$install_dir" >/dev/null
 
 echo "Linking CDM-16 toolchain..."
