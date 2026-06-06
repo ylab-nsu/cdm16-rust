@@ -304,6 +304,9 @@ echo "Running standalone Rust installer..."
 echo "Linking CDM-16 toolchain..."
 rustup toolchain link "$toolchain_name" "$install_dir"
 
+echo "Installing cargo-binutils"
+rustup run "$toolchain_name" cargo install cargo-binutils
+
 toolchain_info="$install_dir/.cdm-rust"
 uninstall_script="$install_dir/lib/uninstall.sh"
 

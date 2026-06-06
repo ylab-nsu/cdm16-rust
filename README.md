@@ -64,10 +64,14 @@ Run the `install.sh` script the extracted directory with `--prefix="PATH TO TOOL
 ./rust-nightly-aarch64-apple-darwin/install.sh --prefix=~/.rust-cdm
 ```
 
-You can now use the binaries in `~/.rust-cdm/bin`.
-
-Register the installed toolchain in `rustup`. You can skip this step if you don't want to use the rustup binary wrappers (e.g. `cargo +cdm build`).
+Register the installed toolchain in `rustup`.
 ```sh
 rustup toolchain link cdm ~/.rust-cdm
+```
+
+If you want to use `cargo objcopy` to automatically convert ELF object files to Logisim image format,
+install [`cargo-binutils`](https://github.com/rust-embedded/cargo-binutils/).
+```sh
+rustup run cdm cargo install cargo-binutils
 ```
 </details>
