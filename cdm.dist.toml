@@ -6,7 +6,7 @@ docs = false
 compiler-docs = false
 submodules = false
 extended = true
-tools = [ "src", "cargo", "analysis" ]
+tools = [ "src", "cargo", "analysis", "llvm-tools" ]
 
 [rust]
 channel = "nightly"
