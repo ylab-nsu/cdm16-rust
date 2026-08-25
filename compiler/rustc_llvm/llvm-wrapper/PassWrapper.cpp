@@ -169,6 +169,12 @@ extern "C" void LLVMRustTimeTraceProfilerFinish(const char *FileName) {
 #define SUBTARGET_LOONGARCH
 #endif
 
+#ifdef LLVM_COMPONENT_CDM
+#define SUBTARGET_CDM SUBTARGET(CDM)
+#else
+#define SUBTARGET_CDM
+#endif
+
 #define GEN_SUBTARGETS                                                         \
   SUBTARGET_X86                                                                \
   SUBTARGET_ARM                                                                \
@@ -184,7 +190,8 @@ extern "C" void LLVMRustTimeTraceProfilerFinish(const char *FileName) {
   SUBTARGET_HEXAGON                                                            \
   SUBTARGET_XTENSA                                                             \
   SUBTARGET_RISCV                                                              \
-  SUBTARGET_LOONGARCH
+  SUBTARGET_LOONGARCH                                                          \
+  SUBTARGET_CDM
 
 #define SUBTARGET(x)                                                           \
   namespace llvm {                                                             \

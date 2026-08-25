@@ -770,6 +770,11 @@ static M68K_FEATURES: &[(&str, Stability, ImpliedFeatures)] = &[
     // tidy-alphabetical-end
 ];
 
+static CDM_FEATURES: &[(&str, Stability, ImpliedFeatures)] = &[
+    ("m", Stable, &[]),
+    ("e", Stable, &[]),
+];
+
 /// When rustdoc is running, provide a list of all known features so that all their respective
 /// primitives may be documented.
 ///
@@ -790,6 +795,7 @@ pub fn all_rust_features() -> impl Iterator<Item = (&'static str, Stability)> {
         .chain(IBMZ_FEATURES)
         .chain(SPARC_FEATURES)
         .chain(M68K_FEATURES)
+        .chain(CDM_FEATURES)
         .cloned()
         .map(|(f, s, _)| (f, s))
 }
@@ -856,6 +862,7 @@ impl Target {
             "s390x" => IBMZ_FEATURES,
             "sparc" | "sparc64" => SPARC_FEATURES,
             "m68k" => M68K_FEATURES,
+            "cdm" => CDM_FEATURES,
             _ => &[],
         }
     }
