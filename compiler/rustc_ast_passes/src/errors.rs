@@ -886,3 +886,25 @@ pub(crate) struct AbiMustNotHaveReturnType {
     pub span: Span,
     pub abi: ExternAbi,
 }
+
+#[derive(Diagnostic)]
+#[diag(ast_passes_abi_cdm_isr_invalid_signature)]
+#[note]
+pub(crate) struct AbiCdmIsrInvalidSignature {
+    #[primary_span]
+    pub spans: Vec<Span>,
+
+    #[suggestion(
+        ast_passes_suggestion,
+        applicability = "maybe-incorrect",
+        code = "{padding}fn {symbol}({attrs}{pat}: {ty}){ret}",
+        style = "verbose"
+    )]
+    pub suggestion_span: Span,
+    pub symbol: Symbol,
+    pub padding: &'static str,
+    pub attrs: String,
+    pub pat: String,
+    pub ty: String,
+    pub ret: String,
+}

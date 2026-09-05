@@ -388,7 +388,9 @@ impl<'a> AstValidator<'a> {
                         // An interrupt handler cannot be `async` and/or `gen`.
                         self.reject_coroutine(abi, sig);
 
-                        if let InterruptKind::X86 = interrupt_kind {
+                        if let InterruptKind::CDM = interrupt_kind {
+                            self.check_cdm_isr_signature(ident, sig);
+                        } else if let InterruptKind::X86 = interrupt_kind {
                             // "x86-interrupt" is special because it does have arguments.
                             // FIXME(workingjubilee): properly lint on acceptable input types.
                             if let FnRetTy::Ty(ref ret_ty) = sig.decl.output {
@@ -468,6 +470,98 @@ impl<'a> AstValidator<'a> {
             });
         }
     }
+
+    fn check_cdm_isr_signature(&self, ident: &Ident, sig: &FnSig) {
+        let check_input_ty = |kind: &TyKind| {
+            match kind {
+                TyKind::Ptr(_) => true,
+                TyKind::Ref(_, _) => true,
+                _ => false
+            }
+        };
+
+        let check_ret_ty = |kind: &TyKind| {
+            match kind {
+                TyKind::Never => true,
+                TyKind::Tup(tup) if tup.is_empty() => true,
+                _ => false
+            }
+        };
+
+        let mut spans: Vec<Span> = Vec::new();
+        if let FnRetTy::Ty(ref ret_ty) = sig.decl.output {
+            if !check_ret_ty(&ret_ty.kind) {
+                spans.push(ret_ty.span);
+            }
+        }
+
+        let args_len = sig.decl.inputs.len();
+        if args_len > 0 {
+            let arg = &sig.decl.inputs[0];
+            if !check_input_ty(&arg.ty.kind) {
+                spans.push(arg.span);
+            }
+        }
+        spans.extend(sig.decl.inputs.iter().skip(1).map(|p| p.span));
+
+        if !spans.is_empty() {
+            let header_span = sig.header.span().unwrap_or(sig.span.shrink_to_lo());
+            let suggestion_span = header_span.shrink_to_hi().to(sig.decl.output.span());
+            let padding = if header_span.is_empty() { "" } else { " " };
+            let attrs = if args_len == 0 {
+                "".to_string()
+            } else {
+                sig.decl.inputs[0]
+                    .attrs
+                    .iter()
+                    .map(|attr| pprust::attribute_to_string(attr) + " ")
+                    .collect::<String>()
+            };
+            let pat = if args_len == 0 {
+                String::new()
+            } else {
+                pprust::pat_to_string(&sig.decl.inputs[0].pat)
+            };
+            let ty = if args_len == 0 {
+                String::new()
+            } else {
+                let first_arg_ty = &*sig.decl.inputs[0].ty;
+                if check_input_ty(&first_arg_ty.kind) {
+                    pprust::ty_to_string(first_arg_ty)
+                } else {
+                    let first_arg_ty = Ty {
+                        id: DUMMY_NODE_ID,
+                        kind: TyKind::Ref(
+                            None,
+                            MutTy { ty: P::new(first_arg_ty.clone()), mutbl: Mutability::Not },
+                        ),
+                        span: rustc_span::DUMMY_SP,
+                        tokens: None,
+                    };
+                    pprust::ty_to_string(&first_arg_ty)
+                }
+            };
+            let ret = if let FnRetTy::Ty(ref ret_ty) = sig.decl.output
+                && check_ret_ty(&ret_ty.kind)
+            {
+                " -> ".to_string() + &pprust::ty_to_string(&ret_ty)
+            } else {
+                String::new()
+            };
+
+            self.dcx().emit_err(errors::AbiCdmIsrInvalidSignature {
+                spans,
+                suggestion_span,
+                symbol: ident.name,
+                padding,
+                attrs,
+                pat,
+                ty,
+                ret,
+            });
+        }
+    }
+
 
     /// This ensures that items can only be `unsafe` (or unmarked) outside of extern
     /// blocks.

@@ -20,6 +20,11 @@ ast_passes_abi_must_not_have_return_type=
     .note = functions with the "custom" ABI cannot have a return type
     .help = remove the return type
 
+ast_passes_abi_cdm_isr_invalid_signature=
+    invalid signature for `extern "cdm-isr"` function
+    .note = functions with the "cdm-isr" ABI must have no return type and a single pointer-like parameter or no parameters
+    .suggestion = use the correct signature
+
 ast_passes_assoc_const_without_body =
     associated constant in `impl` without body
     .suggestion = provide a definition for the constant
