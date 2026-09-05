@@ -1,5 +1,5 @@
 use crate::spec::{
-    Cc, FramePointer, LinkerFlavor, Lld, PanicStrategy, RelocModel, Target, TargetMetadata,
+    Cc, LinkerFlavor, Lld, PanicStrategy, RelocModel, Target, TargetMetadata,
     TargetOptions,
 };
 
@@ -24,7 +24,6 @@ pub(crate) fn target() -> Target {
             panic_strategy: PanicStrategy::Abort,
             relocation_model: RelocModel::Static,
             eh_frame_header: false,
-            frame_pointer: FramePointer::Always,
             exe_suffix: ".elf".into(),
             linker: Some("rust-lld".into()),
             linker_flavor: LinkerFlavor::Gnu(Cc::No, Lld::Yes),
