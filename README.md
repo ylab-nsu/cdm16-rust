@@ -1,12 +1,13 @@
 # Rust for CDM-16 
 
-[![Nightly Release](https://img.shields.io/github/v/release/ylab-nsu/cdm16-rust?include_prereleases&filter=cdm-nightly)](https://github.com/ylab-nsu/cdm16-rust/releases/cdm-nightly)
+[**Support crates**](https://github.com/aelsi2/cdm-rs) | [**Example project**](https://github.com/aelsi2/cdm-paint-rs)
+
+[![Nightly Release](https://img.shields.io/github/v/release/ylab-nsu/cdm16-rust?include_prereleases&filter=cdm-nightly)](https://github.com/ylab-nsu/cdm16-rust/releases/cdm-nightly) 
 
 This is a fork of the Rust compiler and toolchain with experimental [CDM-16 educational processor] target support. It is based on the [Neo CDM-16 LLVM backend].
+The compiler supports a `no_std` environment, with `core` and `alloc`.
 
-[`cdm-rs`] provides startup logic and various utilities for working with the processor.
-
-For a complete usage example, check out [`cdm-paint-rs`].
+There is an out-of-tree set of hardware support crates called [`cdm-rs`] that provides standard startup logic, register access functions, a minimal UART driver, etc.
 
 [CDM-16 educational processor]: https://github.com/cdm-processors/cdm-devkit/blob/d1b647bb8ae9db43be7757a76fa63ddb112fa450/docs/cdm16/cdm16-overview.md
 [Neo CDM-16 LLVM backend]: https://github.com/ylab-nsu/cdm16-llvm-neo/
@@ -23,6 +24,10 @@ Requirements:
 - Linux x86\_64 or macOS AArch64
 - `bash`
 - `rustup`
+
+The same command can be used to update the toolchain. Make sure that you use the same destination path when updating.
+
+The toolchain can be uninstalled using the `lib/uninstall.sh` script placed in the install directory. Default location is `~/.rust-cdm/lib/uninstall.sh`.
 
 <details>
 <summary><b>Manual installation</b></summary>
@@ -75,3 +80,46 @@ install [`cargo-binutils`](https://github.com/rust-embedded/cargo-binutils/).
 rustup run cdm cargo install cargo-binutils
 ```
 </details>
+
+## Usage
+After completing the installation process, the toolchain will be available in `rustup` under the name you chose when you were prompted by the installer (`cdm` by default).
+
+To use the toolchain in your project, add a local toolchain override. Run the following command in your project directory (assuming `cdm` is the name of the toolchain):
+```bash
+rustup override set cdm
+```
+
+You will also need to create a file named `.cargo/config.toml` in your project directory. It will contain the default build target (`cdm-none`) and options to compile `core` (and optionally `alloc`) together with your crate:
+```toml
+[build]
+target = "cdm-none"
+
+[unstable]
+build-std = [ "core", "alloc" ]
+```
+
+Unoptimized builds are likely to fail due to `core` not fitting inside the 64KB address space. You should use at least `opt-level = 1` in dev builds. The recommended options for release builds are `opt-level = 2` and `lto = "fat"`.
+You can add these profiles to your `Cargo.toml`:
+```toml
+[profile.dev]
+opt-level = 2
+debug = false
+lto = "fat"
+
+[profile.release]
+opt-level = 2
+debug = false
+lto = "fat"
+```
+
+Logisim memory images can be created using `cargo-objcopy` like this (`output.img` is the destination file name here):
+```bash
+cargo objcopy --release -- -O logisim output.img
+```
+
+Note that you don't need to run `cargo build` before running `cargo objcopy`. It will do so automatically.
+
+For a complete project example with [`cdm-rs`], check out [`cdm-paint-rs`].
+
+[`cdm-rs`]: https://github.com/aelsi2/cdm-rs
+[`cdm-paint-rs`]: https://github.com/aelsi2/cdm-paint-rs
