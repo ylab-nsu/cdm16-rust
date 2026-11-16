@@ -89,6 +89,26 @@ To use the toolchain in your project, add a local toolchain override. Run the fo
 rustup override set cdm
 ```
 
+You will also need to create a file named `.cargo/config.toml` in your project directory and add the options to compile `core` (and optionally `alloc`) with your crate:
+```toml
+[unstable]
+build-std = [ "core", "alloc" ]
+```
+
+Unoptimized builds are likely to fail due to `core` not fitting inside the 64KB address space. You should use at least `opt-level = 1` in dev builds. The recommended options for release builds are `opt-level = 2` and `lto = "fat"`.
+You can add these profiles to your `Cargo.toml`:
+```toml
+[profile.dev]
+opt-level = 2
+debug = false
+lto = "fat"
+
+[profile.release]
+opt-level = 2
+debug = false
+lto = "fat"
+```
+
 Logisim memory images can be created using `cargo-objcopy` like this (`output.img` is the destination file name here):
 ```bash
 cargo objcopy --release -- -O logisim output.img
@@ -96,5 +116,7 @@ cargo objcopy --release -- -O logisim output.img
 
 Note that you don't need to run `cargo build` before running `cargo objcopy`. It will do so automatically.
 
-> [!IMPORTANT] 
-> Unoptimized builds are likely to fail due to `core` not fitting into the 64KB address space. You should use at least `opt-level = 1` in dev builds. The recommended options for release builds are `opt-level = 2` and `lto = "fat"`.
+For a complete project example with [`cdm-rs`], check out [`cdm-paint-rs`].
+
+[`cdm-rs`]: https://github.com/aelsi2/cdm-rs
+[`cdm-paint-rs`]: https://github.com/aelsi2/cdm-paint-rs
