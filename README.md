@@ -3,8 +3,9 @@
 [![Nightly Release](https://img.shields.io/github/v/release/ylab-nsu/cdm16-rust?include_prereleases&filter=cdm-nightly)](https://github.com/ylab-nsu/cdm16-rust/releases/cdm-nightly)
 
 This is a fork of the Rust compiler and toolchain with experimental [CDM-16 educational processor] target support. It is based on the [Neo CDM-16 LLVM backend].
+The compiler supports a `no_std` environment, with `core` and `alloc`.
 
-[`cdm-rs`] provides startup logic and various utilities for working with the processor.
+There is an out-of-tree set of utility crates called [`cdm-rs`] that provides standard startup logic, register access functions, a minimal UART driver, etc.
 
 For a complete usage example, check out [`cdm-paint-rs`].
 
