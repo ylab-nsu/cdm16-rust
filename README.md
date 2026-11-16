@@ -25,6 +25,10 @@ Requirements:
 - `bash`
 - `rustup`
 
+The same command can be used to update the toolchain. Make sure that you use the same destination path when updating.
+
+The toolchain can be uninstalled using the `lib/uninstall.sh` script placed in the install directory. Default location is `~/.rust-cdm/lib/uninstall.sh`.
+
 <details>
 <summary><b>Manual installation</b></summary>
 <br>
@@ -76,3 +80,18 @@ install [`cargo-binutils`](https://github.com/rust-embedded/cargo-binutils/).
 rustup run cdm cargo install cargo-binutils
 ```
 </details>
+
+## Usage
+After completing the installation process, the toolchain will be available in `rustup` under the name you chose when you were prompted by the installer (`cdm` by default).
+
+To use the toolchain in your project, add a local toolchain override. Run the following command in your project directory (assuming `cdm` is the name of the toolchain):
+```bash
+rustup override set cdm
+```
+
+Logisim memory images can be created using `cargo-objcopy` like this (`output.img` is the destination file name here):
+```bash
+cargo objcopy --release -- -O logisim output.img
+```
+
+Note that you don't need to run `cargo build` before running `cargo objcopy`. It will do so automatically.
