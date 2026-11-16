@@ -95,3 +95,6 @@ cargo objcopy --release -- -O logisim output.img
 ```
 
 Note that you don't need to run `cargo build` before running `cargo objcopy`. It will do so automatically.
+
+> [!IMPORTANT] 
+> Unoptimized builds are likely to fail due to `core` not fitting into the 64KB address space. You should use at least `opt-level = 1` in dev builds. The recommended options for release builds are `opt-level = 2` and `lto = "fat"`.
