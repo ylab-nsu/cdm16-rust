@@ -89,8 +89,11 @@ To use the toolchain in your project, add a local toolchain override. Run the fo
 rustup override set cdm
 ```
 
-You will also need to create a file named `.cargo/config.toml` in your project directory and add the options to compile `core` (and optionally `alloc`) with your crate:
+You will also need to create a file named `.cargo/config.toml` in your project directory. It will contain the default build target (`cdm-none`) and options to compile `core` (and optionally `alloc`) together with your crate:
 ```toml
+[build]
+target = "cdm-none"
+
 [unstable]
 build-std = [ "core", "alloc" ]
 ```
